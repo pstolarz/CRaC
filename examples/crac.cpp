@@ -20,7 +20,7 @@ int main(int argc, const char *argv[])
     constexpr const uint8_t check_str[] = "123456789";
     constexpr const size_t len = sizeof(check_str) - 1;
 
-    // compile time CRC calculation
+    // compile-time CRC calculation
     static_assert(
         CRC32::get_engine().calc(check_str, len) ==
         CRC32::get_algo().check_val, "Invalid CRC32 check-val");

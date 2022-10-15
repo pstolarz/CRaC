@@ -70,7 +70,7 @@ constexpr inline T bits_rev(T in, unsigned bits = 8 * sizeof(T))
  * definition:
  *
  * @param Bits CRC size in bits.
- * @param Poly CRC polynomial.
+ * @param Poly CRC polynomial in direct (non-reflected) form.
  * @param ReflIn If @c true the CRC works in reflected-input mode (least
  *     significant bits of input bytes corresponds to most significant poly
  *     coefficients), if @false in direct-input mode.
@@ -93,14 +93,15 @@ struct crc_algo<Bits, Poly, true>
     constexpr static unsigned bits = Bits;
     /// CRC result type
     using type = pwr2_t<pwr2_ceil(bits)>;
-
+    /// CRC value mask
+    constexpr static type mask =
+        (type)(bits < 64 ? ((uint64_t)1 << bits) - 1 : -1);
     /// Polynomial associated with the CRC algorithm
     constexpr static type poly = Poly;
     /// Polynomial associated with the CRC algorithm (reverse order)
     constexpr static type poly_rev = bits_rev(Poly, bits);
-    /// CRC value mask
-    constexpr static type mask =
-        (type)(bits < 64 ? ((uint64_t)1 << bits) - 1 : -1);
+    /// The template specialization defines reflected-input algorithms
+    constexpr static bool refl_in = true;
 
     /**
      * Calculate CRC for given input bytes - slow version (direct calculation
@@ -208,8 +209,8 @@ struct crc_algo<Bits, Poly, true>
 
     constexpr crc_algo(const crc_algo&) = default;
 
-    // runtime parameters directly accessible in read-only mode
-    constexpr static bool refl_in = true;
+    // Runtime parameters directly accessible in read-only mode. They may
+    // (but need not to) be reduced to compile-time constants by the compiler.
     const bool refl_out;
     const type init_in;
     const type xor_out;
@@ -228,14 +229,15 @@ struct crc_algo<Bits, Poly, false>
     constexpr static unsigned bits = Bits;
     /// CRC result type
     using type = pwr2_t<pwr2_ceil(bits)>;
-
+    /// CRC value mask
+    constexpr static type mask =
+        (type)(bits < 64 ? ((uint64_t)1 << bits) - 1 : -1);
     /// Polynomial associated with the CRC algorithm
     constexpr static type poly = Poly;
     /// Polynomial associated with the CRC algorithm (reverse order)
     constexpr static type poly_rev = bits_rev(Poly, bits);
-    /// CRC value mask
-    constexpr static type mask =
-        (type)(bits < 64 ? ((uint64_t)1 << bits) - 1 : -1);
+    /// The template specialization defines direct-input algorithms
+    constexpr static bool refl_in = false;
 
     /**
      * See @c _calc() for reflected-input mode specialization.
@@ -355,8 +357,8 @@ struct crc_algo<Bits, Poly, false>
 
     constexpr crc_algo(const crc_algo&) = default;
 
-    // runtime parameters directly accessible in read-only mode
-    constexpr static bool refl_in = false;
+    // Runtime parameters directly accessible in read-only mode. They may
+    // (but need not to) be reduced to compile-time constants by the compiler.
     const bool refl_out;
     const type init_in;
     const type xor_out;
