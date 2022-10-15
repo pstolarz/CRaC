@@ -162,11 +162,11 @@ struct crc_algo<Bits, Poly, true>
             crc ^= *in++;
             if __CONSTEXPR (bits <= 8) {
                 crc = tabs.tab16_l[crc & 0x0f] ^
-                    tabs.tab16_h[(crc >> 4) & 0x0f];
+                    tabs.tab16_h[crc >> 4];
             } else {
                 crc = (crc >> 8) ^
                     tabs.tab16_l[crc & 0x0f] ^
-                    tabs.tab16_h[(crc >> 4) & 0x0f];
+                    tabs.tab16_h[(uint8_t)crc >> 4];
             }
         }
         return crc;
@@ -262,17 +262,18 @@ struct crc_algo<Bits, Poly, false>
             }
             for (int i = 8; i; i--) {
                 if __CONSTEXPR (bits < 8) {
-                    crc = (crc  & 0x80 ? poly << (8 - bits) : 0) ^ (crc << 1);
+                    crc = (crc & 0x80 ? poly << (8 - bits) : 0) ^ (crc << 1);
                 } else {
-                    crc = ((crc  >> (bits - 1)) & 1 ?  poly : 0) ^ (crc << 1);
+                    crc = (crc & ((type)1 << (bits - 1)) ?  poly : 0) ^ (crc << 1);
                 }
             }
         }
 
         if __CONSTEXPR (bits < 8) {
-            crc >>= (8 - bits);
+            return crc >> (8 - bits);
+        } else {
+            return crc & mask;
         }
-        return crc & mask;
     }
 
     // CRC lookup tables
@@ -316,12 +317,12 @@ struct crc_algo<Bits, Poly, false>
             if __CONSTEXPR (bits <= 8) {
                 crc ^= *in++;
                 crc = tabs.tab16_l[crc & 0x0f] ^
-                    tabs.tab16_h[(crc >> 4) & 0x0f];
+                    tabs.tab16_h[crc >> 4];
             } else {
-                crc ^= (type)*in++ << (bits - 8);
+                uint8_t crc_msb = (crc >> (bits - 8)) ^ (type)*in++;
                 crc = (crc << 8) ^
-                    tabs.tab16_l[(crc >> (bits - 8)) & 0x0f] ^
-                    tabs.tab16_h[(crc >> (bits - 4)) & 0x0f];
+                    tabs.tab16_l[crc_msb & 0x0f] ^
+                    tabs.tab16_h[crc_msb >> 4];
             }
         }
 
