@@ -143,11 +143,8 @@ struct crc_algo<Bits, Poly, true>
     // CRC lookup table (2*16 elements)
     struct tab_t
     {
-        type tab[32] = {};
-
-        // used to speed-up access
-        type *const tab_l = &tab[0];
-        type *const tab_h = &tab[16];
+        type tab_l[16] = {};
+        type tab_h[16] = {};
 
         constexpr tab_t()
         {
@@ -322,9 +319,6 @@ struct crc_algo<Bits, Poly, false>
     // CRC lookup table (2*16 elements)
     struct tab_t
     {
-        type tab[32] = {};
-
-        // used to speed-up access
         type tab_l[16] = {};
         type tab_h[16] = {};
 
