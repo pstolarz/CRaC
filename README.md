@@ -199,6 +199,11 @@ The library provides the following set of predefined CRCs:
 | CRC64_XZ           | 0x42f0e1eba9ea3693 | Y      | Y       | ~0       | ~0       | 0x995dc9bbdf1939fa |
 | CRC64_REDIS        | 0xad93d23594c935a9 | Y      | Y       | 0        | 0        | 0xe9c6d914c4b8d9ca |
 
+### References
+
+1. [Catalogue of parametrised CRC algorithms](https://reveng.sourceforge.io/crc-catalogue/all.htm); CRC RevEng
+2. [Cyclic redundancy code (CRC)](https://infineon.github.io/mtb-pdl-cat2/pdl_api_reference_manual/html/group__group__crypto__lld__crc__functions.html); CAT2 Peripheral Driver Library
+3. [Cyclic redundancy code (CRC)](https://en.wikipedia.org/wiki/Cyclic_redundancy_check); Wikipedia
 ## License
 
 2 clause BSD license. See [`LICENSE`](LICENSE) file for details.

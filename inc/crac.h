@@ -235,8 +235,8 @@ struct crc_algo<Bits, Poly, true>
 
     constexpr crc_algo(const crc_algo&) = default;
 
-    // Runtime parameters directly accessible in read-only mode. They may
-    // (but need not to) be reduced to compile-time constants by a compiler.
+    // Runtime parameters directly accessible in read-only mode.
+    // They may be reduced to compile-time constants by a compiler.
     const bool refl_out;
     const type init_in;
     const type xor_out;
@@ -414,8 +414,8 @@ struct crc_algo<Bits, Poly, false>
 
     constexpr crc_algo(const crc_algo&) = default;
 
-    // Runtime parameters directly accessible in read-only mode. They may
-    // (but need not to) be reduced to compile-time constants by a compiler.
+    // Runtime parameters directly accessible in read-only mode.
+    // They may be reduced to compile-time constants by a compiler.
     const bool refl_out;
     const type init_in;
     const type xor_out;
