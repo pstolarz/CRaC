@@ -17,6 +17,7 @@
 #include <cstddef>      // size_t
 #include <type_traits>  // make_unsigned, is_same (tests only)
 
+// rid off C++17 compile-time-if statement errors on C++14 compiler
 #if __cplusplus >= 201703L
 # define __CONSTEXPR constexpr
 #else
@@ -75,9 +76,9 @@ constexpr inline T bits_rev(T in, unsigned bits = 8 * sizeof(T))
  *     significant bits of input bytes corresponds to most significant poly
  *     coefficients), if @false in direct-input mode.
  *
- * @note The parameters uniquely define CRC algorithm lookup tables, which
- *     are calculated on the compile-time and are assigned to the algorithm
- *     on the class-level (static) context.
+ * @note The parameters uniquely define CRC algorithm lookup table, calculated
+ *     at the compile time and assigned to the algorithm on the class-level
+ *     (static) context.
  */
 template<unsigned Bits, uint64_t Poly, bool ReflIn> struct crc_algo;
 
@@ -108,11 +109,10 @@ struct crc_algo<Bits, Poly, true>
      * basing on mathematical definition).
      *
      * @note Don't use this version unless for *very specific* use cases.
-     *    The routine is used in compile-time to generate internal lookup
-     *    tables.
+     *    The routine is used at the compile time to generate internal lookup
+     *    table.
      */
-    constexpr static type _calc(
-        const uint8_t *in, size_t len, type crc_in)
+    constexpr static type _calc(const uint8_t *in, size_t len, type crc_in)
     {
         type crc = crc_in;
 
@@ -125,49 +125,75 @@ struct crc_algo<Bits, Poly, true>
         return crc;
     }
 
-    // CRC lookup tables
-    struct tabs_t
+#ifdef CRAC_TAB256
+    // CRC lookup table (256 elements)
+    struct tab_t
     {
-        type tab16_l[16] = {};
-        type tab16_h[16] = {};
+        type tab[256] = {};
 
-        constexpr tabs_t()
+        constexpr tab_t()
+        {
+            uint8_t i = 0;
+            do {
+                tab[i] = _calc(&i, 1, 0);
+            } while (++i);
+        }
+    };
+#else
+    // CRC lookup table (2*16 elements)
+    struct tab_t
+    {
+        type tab[32] = {};
+
+        // used to speed-up access
+        type *const tab_l = &tab[0];
+        type *const tab_h = &tab[16];
+
+        constexpr tab_t()
         {
             for (uint8_t i = 0; i < 16; i++) {
-                tab16_l[i] = _calc(&i, 1, 0);
+                tab_l[i] = _calc(&i, 1, 0);
             }
             for (uint8_t i = 0; i < 16; i++) {
                 uint8_t b = i << 4;
-                tab16_h[i] = _calc(&b, 1, 0);
+                tab_h[i] = _calc(&b, 1, 0);
             }
         }
     };
+#endif
 
-    // generate CRC tables on compile-time
-    constexpr static tabs_t tabs{};
+    // generate lookup table at the compile time
+    constexpr static tab_t lookup{};
 
     /**
-     * Calculate CRC for given input bytes - fast version (basing on lookup
-     * tables).
+     * Calculate CRC for given input bytes - fast version (basing on the
+     * CRC lookup table).
      *
      * @note This is "plumbing" routine devoted for specific use-cases.
      *     See @ref crc_engine::calc() for more usable variant.
      */
-    constexpr static type _calc_tab(
-        const uint8_t *in, size_t len, type crc_in)
+    constexpr static type _calc_tab(const uint8_t *in, size_t len, type crc_in)
     {
         type crc = crc_in;
 
         while (len--) {
             crc ^= *in++;
+#ifdef CRAC_TAB256
             if __CONSTEXPR (bits <= 8) {
-                crc = tabs.tab16_l[crc & 0x0f] ^
-                    tabs.tab16_h[crc >> 4];
+                crc = lookup.tab[crc];
+            } else {
+                crc = (crc >> 8) ^ lookup.tab[(uint8_t)crc];
+            }
+#else
+            if __CONSTEXPR (bits <= 8) {
+                crc = lookup.tab_l[crc & 0xf] ^
+                    lookup.tab_h[crc >> 4];
             } else {
                 crc = (crc >> 8) ^
-                    tabs.tab16_l[crc & 0x0f] ^
-                    tabs.tab16_h[(uint8_t)crc >> 4];
+                    lookup.tab_l[crc & 0xf] ^
+                    lookup.tab_h[(uint8_t)crc >> 4];
             }
+#endif
         }
         return crc;
     }
@@ -210,7 +236,7 @@ struct crc_algo<Bits, Poly, true>
     constexpr crc_algo(const crc_algo&) = default;
 
     // Runtime parameters directly accessible in read-only mode. They may
-    // (but need not to) be reduced to compile-time constants by the compiler.
+    // (but need not to) be reduced to compile-time constants by a compiler.
     const bool refl_out;
     const type init_in;
     const type xor_out;
@@ -243,11 +269,10 @@ struct crc_algo<Bits, Poly, false>
      * See @c _calc() for reflected-input mode specialization.
      *
      * @note Don't use this version unless for *very specific* use cases.
-     *    The routine is used in compile-time to generate internal lookup
-     *    tables.
+     *    The routine is used at the compile time to generate internal lookup
+     *    table.
      */
-    constexpr static type _calc(
-        const uint8_t *in, size_t len, type crc_in)
+    constexpr static type _calc(const uint8_t *in, size_t len, type crc_in)
     {
         type crc = crc_in;
         if __CONSTEXPR (bits < 8) {
@@ -276,37 +301,58 @@ struct crc_algo<Bits, Poly, false>
         }
     }
 
-    // CRC lookup tables
-    struct tabs_t
+#ifdef CRAC_TAB256
+    // CRC lookup table (256 elements)
+    struct tab_t
     {
-        type tab16_l[16] = {};
-        type tab16_h[16] = {};
+        type tab[256] = {};
 
-        constexpr tabs_t()
+        constexpr tab_t()
+        {
+            uint8_t i = 0;
+            do {
+                tab[i] = _calc(&i, 1, 0);
+                if __CONSTEXPR (bits < 8) {
+                    tab[i] <<= (8 - bits);
+                }
+            } while (++i);
+        }
+    };
+#else
+    // CRC lookup table (2*16 elements)
+    struct tab_t
+    {
+        type tab[32] = {};
+
+        // used to speed-up access
+        type tab_l[16] = {};
+        type tab_h[16] = {};
+
+        constexpr tab_t()
         {
             for (uint8_t i = 0; i < 16; i++) {
-                tab16_l[i] = _calc(&i, 1, 0);
+                tab_l[i] = _calc(&i, 1, 0);
                 if __CONSTEXPR (bits < 8) {
-                    tab16_l[i] <<= (8 - bits);
+                    tab_l[i] <<= (8 - bits);
                 }
             }
             for (uint8_t i = 0; i < 16; i++) {
                 uint8_t b = i << 4;
 
-                tab16_h[i] = _calc(&b, 1, 0);
+                tab_h[i] = _calc(&b, 1, 0);
                 if __CONSTEXPR (bits < 8) {
-                    tab16_h[i] <<= (8 - bits);
+                    tab_h[i] <<= (8 - bits);
                 }
             }
         }
     };
+#endif
 
-    // generate CRC tables on compile-time
-    constexpr static tabs_t tabs{};
+    // generate lookup table at the compile time
+    constexpr static tab_t lookup{};
 
     /// See @c _calc_tab() for reflected-input mode specialization.
-    constexpr static type _calc_tab(
-        const uint8_t *in, size_t len, type crc_in)
+    constexpr static type _calc_tab(const uint8_t *in, size_t len, type crc_in)
     {
         type crc = crc_in;
         if __CONSTEXPR (bits < 8) {
@@ -314,16 +360,26 @@ struct crc_algo<Bits, Poly, false>
         }
 
         while (len--) {
+#ifdef CRAC_TAB256
             if __CONSTEXPR (bits <= 8) {
                 crc ^= *in++;
-                crc = tabs.tab16_l[crc & 0x0f] ^
-                    tabs.tab16_h[crc >> 4];
+                crc = lookup.tab[crc];
+            } else {
+                uint8_t crc_msb = (crc >> (bits - 8)) ^ (type)*in++;
+                crc = (crc << 8) ^ lookup.tab[crc_msb];
+            }
+#else
+            if __CONSTEXPR (bits <= 8) {
+                crc ^= *in++;
+                crc = lookup.tab_l[crc & 0xf] ^
+                    lookup.tab_h[crc >> 4];
             } else {
                 uint8_t crc_msb = (crc >> (bits - 8)) ^ (type)*in++;
                 crc = (crc << 8) ^
-                    tabs.tab16_l[crc_msb & 0x0f] ^
-                    tabs.tab16_h[crc_msb >> 4];
+                    lookup.tab_l[crc_msb & 0xf] ^
+                    lookup.tab_h[crc_msb >> 4];
             }
+#endif
         }
 
         if __CONSTEXPR (bits < 8) {
@@ -359,7 +415,7 @@ struct crc_algo<Bits, Poly, false>
     constexpr crc_algo(const crc_algo&) = default;
 
     // Runtime parameters directly accessible in read-only mode. They may
-    // (but need not to) be reduced to compile-time constants by the compiler.
+    // (but need not to) be reduced to compile-time constants by a compiler.
     const bool refl_out;
     const type init_in;
     const type xor_out;

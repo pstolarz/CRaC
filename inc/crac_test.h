@@ -11,7 +11,7 @@
  */
 
 /*
- * Compile time tester. To be included from the library header only.
+ * Compile-time tester. To be included from the library header only.
  */
 
 //
@@ -121,7 +121,7 @@ static_assert(CRC64_MS::algo_type::poly_rev == 0x92c64265d32139a4, "");
 static_assert(CRC64_ECMA::algo_type::poly_rev == 0xc96c5795d7870f42, "");
 static_assert(CRC64_REDIS::algo_type::poly_rev == 0x95ac9329ac4bc9b5, "");
 
-// compile time CRC tester
+// compile-time CRC tester
 template<typename AlgoDesc>
 constexpr void test_crc()
 {
@@ -142,7 +142,7 @@ constexpr void test_crc()
 }
 
 //
-// Function templates declaration forces compile time CRC tests
+// Function templates declaration forces compile-time CRC tests
 //
 template void test_crc<CRC1>();
 template void test_crc<CRC3_GSM>();

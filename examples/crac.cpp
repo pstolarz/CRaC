@@ -11,6 +11,9 @@
  */
 
 #include <cassert>
+
+// use 256 lookup table
+//#define CRAC_TAB256
 #include "crac.h"
 
 int main(int argc, const char *argv[])

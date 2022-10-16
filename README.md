@@ -1,6 +1,6 @@
 # CRaC: C++ CRC template library
 
-CRaC is C++ "single-header" template library aiming for fast calculation and
+CRaC is C++ single-header template library aiming for fast calculation and
 limited runtime footprint needs (especially embedded systems case). The library
 extensively exploits compile-time oriented features of the C++ language,
 requiring at least C++14 compliant compiler, however for best performance
@@ -12,42 +12,49 @@ The following features distinct the library among dozens of other CRC libraries.
 
 **Runtime fast, compile-time optimized**
 
-Lookup tables generations and all conditional branches are defined and checked
-at the compile-time by the compiler, emitting the runtime output in reduced
+Lookup tables generation and all conditional branches are defined and checked
+at the compile time by a compiler, emitting the runtime output in reduced
 form, optimized for a particular CRC algorithm. Moreover, if an input for
-a calculated CRC checksum is known at compile-time, the library may calculate
-it purely on the compilation stage with no footprint emitted to the runtime
-output. As an example - the library unit tests are performed entirely on the
-compile-time level by [`carc_test.h`](inc/crac_test.h) header, therefore may
-be performed during any user-project compilation phase, without overhead on
-the final runtime outcome.
+a calculated CRC checksum is known at the compile time, the library may
+calculate it purely at the compilation stage with no footprint emitted to the
+runtime output. As an example - the library unit tests are performed entirely
+at the compile-time level by [`carc_test.h`](inc/crac_test.h) header, therefore
+may be performed during library user's project compilation phase, without
+overhead on the final runtime outcome.
 
 **Limited runtime footprint**
 
-Besides compile-time optimizations, the library exploits special type of
-reduced lookup tables to decrease runtime footprint size. Most CRC libraries
-out there, which use lookup tables to increase CRC computations, base on a
-single 256-elements table to calculate single-byte CRC checksum. Such approach
-may by a blocker for tiny embedded platforms, where 1kB CRC-32 lookup table
-is simply too large. CRaC incorporates two 16-elements lookup tables,
-drastically reducing the footprint, without significant performance penalty.
+The library exploits special type of reduced size lookup table to decrease
+runtime footprint size. Most CRC libraries out there, which use lookup tables
+to increase CRC computation speed, base on a single 256-elements table to
+calculate single-byte CRC checksum. Such approach may by a blocker for tiny
+embedded platforms, where 1kB CRC-32 lookup table is simply too large. CRaC
+incorporates two 16-elements lookup tables, drastically reducing the footprint,
+without significant performance penalty.
+
+NOTE: Single 256-elements lookup table is still possible to use by defining
+`CRAC_TAB256`.
 
 **100+ predefined CRCs**
 
 Beside allowing to define arbitrary CRCs, the library provides large set of
 predefined CRCs ready to use out of the box. Note, the definitions are provided
-directly on the compile-time level, therefore don't occupy runtime outcome
-if no reference exists in the source code - if you don't use it, you don't pay
+directly at the compile-time level, therefore don't occupy runtime outcome
+unless reference exists in the source code - if you don't use it, you don't pay
 for it.
 
 ## Usage
 
-The library can calculate CRC checksum purely on the compile-time (if input
+The library can calculate CRC checksum purely at the compile time (if an input
 data is known at the source code level, aka `constexpr`) or classically during
 the runtime phase. In the latter case the computation may be performed in two
 types of modes - single step mode and the block mode.
 
 ```c++
+#include "crac.h" // CRaC header
+
+// ...
+
 using namespace crac;
 
 constexpr const uint8_t check_str[] = "123456789";
