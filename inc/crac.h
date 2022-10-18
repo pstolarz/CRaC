@@ -41,85 +41,103 @@ constexpr static crc_tab_e def_tab_type = crc_tab_e::TAB16LH;
 #endif
 
 // CRC lookup table
-template<typename Algo, bool ReflIn = Algo::refl_in,
-    crc_tab_e TabType = Algo::tab_type> struct crc_tab;
+template<typename Algo,
+    bool ReflIn = Algo::refl_in, crc_tab_e TabType = Algo::tab_type>
+struct crc_tab;
 
 // reflected-input, 256 elements table
 template<typename Algo>
 struct crc_tab<Algo, true, crc_tab_e::TAB256>
 {
-    typename Algo::type tab[256] = {};
-
     constexpr crc_tab()
     {
         uint8_t i = 0;
         do {
-            tab[i] = Algo::_calc(&i, 1, 0);
+            _tab[i] = Algo::_calc(&i, 1, 0);
         } while (++i);
     }
+
+    constexpr inline typename Algo::type tab(uint8_t in) const {
+        return _tab[in];
+    }
+
+private:
+    typename Algo::type _tab[256] = {};
 };
 
 // direct-input, 256 elements table
 template<typename Algo>
 struct crc_tab<Algo, false, crc_tab_e::TAB256>
 {
-    typename Algo::type tab[256] = {};
-
     constexpr crc_tab()
     {
         uint8_t i = 0;
         do {
-            tab[i] = Algo::_calc(&i, 1, 0);
+            _tab[i] = Algo::_calc(&i, 1, 0);
             if __CONSTEXPR (Algo::bits < 8) {
-                tab[i] <<= (8 - Algo::bits);
+                _tab[i] <<= (8 - Algo::bits);
             }
         } while (++i);
     }
+
+    constexpr inline typename Algo::type tab(uint8_t in) const {
+        return _tab[in];
+    }
+
+private:
+    typename Algo::type _tab[256] = {};
 };
 
 // reflected-input, 2*16 elements table
 template<typename Algo>
 struct crc_tab<Algo, true, crc_tab_e::TAB16LH>
 {
-    typename Algo::type tab_l[16] = {};
-    typename Algo::type tab_h[16] = {};
-
     constexpr crc_tab()
     {
         for (uint8_t i = 0; i < 16; i++) {
-            tab_l[i] = Algo::_calc(&i, 1, 0);
-        }
-        for (uint8_t i = 0; i < 16; i++) {
-            uint8_t b = i << 4;
-            tab_h[i] = Algo::_calc(&b, 1, 0);
+            _tab_l[i] = Algo::_calc(&i, 1, 0);
+
+            uint8_t ih = i << 4;
+            _tab_h[i] = Algo::_calc(&ih, 1, 0);
         }
     }
+
+    constexpr inline typename Algo::type tab(uint8_t in) const {
+        return _tab_l[in & 0xf] ^ _tab_h[in >> 4];
+    }
+
+private:
+    typename Algo::type _tab_l[16] = {};
+    typename Algo::type _tab_h[16] = {};
 };
 
 // direct-input, 2*16 elements table
 template<typename Algo>
 struct crc_tab<Algo, false, crc_tab_e::TAB16LH>
 {
-    typename Algo::type tab_l[16] = {};
-    typename Algo::type tab_h[16] = {};
-
     constexpr crc_tab()
     {
         for (uint8_t i = 0; i < 16; i++) {
-            tab_l[i] = Algo::_calc(&i, 1, 0);
+            _tab_l[i] = Algo::_calc(&i, 1, 0);
             if __CONSTEXPR (Algo::bits < 8) {
-                tab_l[i] <<= (8 - Algo::bits);
+                _tab_l[i] <<= (8 - Algo::bits);
             }
-        }
-        for (uint8_t i = 0; i < 16; i++) {
-            uint8_t b = i << 4;
 
-            tab_h[i] = Algo::_calc(&b, 1, 0);
+            uint8_t ih = i << 4;
+            _tab_h[i] = Algo::_calc(&ih, 1, 0);
             if __CONSTEXPR (Algo::bits < 8) {
-                tab_h[i] <<= (8 - Algo::bits);
+                _tab_h[i] <<= (8 - Algo::bits);
             }
         }
     }
+
+    constexpr inline typename Algo::type tab(uint8_t in) const {
+        return _tab_l[in & 0xf] ^ _tab_h[in >> 4];
+    }
+
+private:
+    typename Algo::type _tab_l[16] = {};
+    typename Algo::type _tab_h[16] = {};
 };
 
 constexpr inline static unsigned pwr2_ceil(unsigned v)
@@ -235,27 +253,17 @@ struct crc_algo<Bits, Poly, true, TabType>
      * @note This is "plumbing" routine devoted for specific use-cases.
      *     See @ref crc_engine::calc() for more usable variant.
      */
-    constexpr static type _calc_tab(const uint8_t *in, size_t len, type crc_in)
+    constexpr inline static type _calc_tab(
+        const uint8_t *in, size_t len, type crc_in)
     {
         type crc = crc_in;
 
         while (len--) {
-            crc ^= *in++;
-            if __CONSTEXPR (tab_type == crc_tab_e::TAB256) {
-                if __CONSTEXPR (bits <= 8) {
-                    crc = lookup.tab[crc];
-                } else {
-                    crc = (crc >> 8) ^ lookup.tab[(uint8_t)crc];
-                }
+            crc = crc ^ *in++;
+            if __CONSTEXPR (bits <= 8) {
+                crc = lookup.tab(crc);
             } else {
-                if __CONSTEXPR (bits <= 8) {
-                    crc = lookup.tab_l[crc & 0xf] ^
-                        lookup.tab_h[crc >> 4];
-                } else {
-                    crc = (crc >> 8) ^
-                        lookup.tab_l[crc & 0xf] ^
-                        lookup.tab_h[(uint8_t)crc >> 4];
-                }
+                crc = (crc >> 8) ^ lookup.tab(crc);
             }
         }
         return crc;
@@ -267,7 +275,7 @@ struct crc_algo<Bits, Poly, true, TabType>
      * @note This is "plumbing" routine devoted for specific use-cases.
      *     See @ref crc_engine::final() for more usable variant.
      */
-    constexpr type _final(type crc) const
+    constexpr inline type _final(type crc) const
     {
         if (!refl_out) {
             crc = bits_rev(crc, bits);
@@ -370,7 +378,8 @@ struct crc_algo<Bits, Poly, false, TabType>
     constexpr static crc_tab<crc_algo> lookup{};
 
     /// See @c _calc_tab() for reflected-input mode specialization.
-    constexpr static type _calc_tab(const uint8_t *in, size_t len, type crc_in)
+    constexpr inline static type _calc_tab(
+        const uint8_t *in, size_t len, type crc_in)
     {
         type crc = crc_in;
         if __CONSTEXPR (bits < 8) {
@@ -378,25 +387,11 @@ struct crc_algo<Bits, Poly, false, TabType>
         }
 
         while (len--) {
-            if __CONSTEXPR (tab_type == crc_tab_e::TAB256) {
-                if __CONSTEXPR (bits <= 8) {
-                    crc ^= *in++;
-                    crc = lookup.tab[crc];
-                } else {
-                    uint8_t crc_msb = (crc >> (bits - 8)) ^ (type)*in++;
-                    crc = (crc << 8) ^ lookup.tab[crc_msb];
-                }
+            if __CONSTEXPR (bits <= 8) {
+                crc = lookup.tab(crc ^ *in++);
             } else {
-                if __CONSTEXPR (bits <= 8) {
-                    crc ^= *in++;
-                    crc = lookup.tab_l[crc & 0xf] ^
-                        lookup.tab_h[crc >> 4];
-                } else {
-                    uint8_t crc_msb = (crc >> (bits - 8)) ^ (type)*in++;
-                    crc = (crc << 8) ^
-                        lookup.tab_l[crc_msb & 0xf] ^
-                        lookup.tab_h[crc_msb >> 4];
-                }
+                crc = (crc << 8) ^
+                    lookup.tab((crc >> (bits - 8)) ^ (type)*in++);
             }
         }
 
@@ -408,7 +403,7 @@ struct crc_algo<Bits, Poly, false, TabType>
     }
 
     /// See @c _final() for reflected-input mode specialization.
-    constexpr type _final(type crc) const
+    constexpr inline type _final(type crc) const
     {
         if (refl_out) {
             crc = bits_rev(crc, bits);
@@ -463,7 +458,7 @@ struct crc_engine: crc_algo<Bits, Poly, ReflIn, TabType>
      * Calculation engine collects passed input blocks for processing CRC
      * until @ref final() method call.
      */
-    void update(const uint8_t *in, size_t len) {
+    inline void update(const uint8_t *in, size_t len) {
         crc = this->_calc(in, len, crc);
     }
 
@@ -473,7 +468,7 @@ struct crc_engine: crc_algo<Bits, Poly, ReflIn, TabType>
      * Onece the value is returned the method resets the engine for subsequent
      * block calculations.
      */
-    type final() {
+    inline type final() {
         type res = this->_final(crc);
         crc = this->init_in;
         return res;
@@ -485,7 +480,7 @@ struct crc_engine: crc_algo<Bits, Poly, ReflIn, TabType>
      * @note The method doesn't interfere with @c update() and @c final()
      *     used in the block mode.
      */
-    constexpr type calc(const uint8_t *in, size_t len) const {
+    constexpr inline type calc(const uint8_t *in, size_t len) const {
         return this->_final(this->_calc(in, len, this->init_in));
     }
 
@@ -515,7 +510,7 @@ struct crc_algo_desc
     using engine_type = crc_engine<Bits, Poly, ReflIn, TabType>;
 
     /// Get the algorithm instance
-    constexpr static algo_type get_algo() {
+    constexpr inline static algo_type get_algo() {
         return algo_type(ReflOut,
             (typename algo_type::type)InitVal,
             (typename algo_type::type)XorOut,
@@ -523,7 +518,7 @@ struct crc_algo_desc
     }
 
     /// Get the CRC engine instance
-    constexpr static engine_type get_engine() {
+    constexpr inline static engine_type get_engine() {
         return engine_type(get_algo());
     }
 };
