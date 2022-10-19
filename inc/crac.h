@@ -140,7 +140,7 @@ private:
     typename Algo::type _tab_h[16] = {};
 };
 
-constexpr inline static unsigned pwr2_ceil(unsigned v)
+constexpr static unsigned pwr2_ceil(unsigned v)
 {
     for (unsigned p2 = 8; p2; p2 <<= 1) {
         if (v <= p2) return p2;
@@ -459,7 +459,7 @@ struct crc_engine: crc_algo<Bits, Poly, ReflIn, TabType>
      * until @ref final() method call.
      */
     inline void update(const uint8_t *in, size_t len) {
-        crc = this->_calc(in, len, crc);
+        crc = this->_calc_tab(in, len, crc);
     }
 
     /**
@@ -481,11 +481,11 @@ struct crc_engine: crc_algo<Bits, Poly, ReflIn, TabType>
      *     used in the block mode.
      */
     constexpr inline type calc(const uint8_t *in, size_t len) const {
-        return this->_final(this->_calc(in, len, this->init_in));
+        return this->_final(this->_calc_tab(in, len, this->init_in));
     }
 
 private:
-    typename algo_type::type crc;
+    type crc;
 };
 
 /**
@@ -508,13 +508,12 @@ struct crc_algo_desc
     using algo_type = crc_algo<Bits, Poly, ReflIn, TabType>;
     /// CRC engine type
     using engine_type = crc_engine<Bits, Poly, ReflIn, TabType>;
+    /// CRC result type
+    using type = typename algo_type::type;
 
     /// Get the algorithm instance
     constexpr inline static algo_type get_algo() {
-        return algo_type(ReflOut,
-            (typename algo_type::type)InitVal,
-            (typename algo_type::type)XorOut,
-            CheckVal);
+        return algo_type(ReflOut, (type)InitVal, (type)XorOut, CheckVal);
     }
 
     /// Get the CRC engine instance
@@ -713,5 +712,6 @@ using CRC64_REDIS = crc_algo_desc<64, 0xad93d23594c935a9, true, true, 0, 0, 0xe9
 #endif
 
 } // crac namespace
+
 #undef __CONSTEXPR
 #endif /* __CRAC_H__ */
