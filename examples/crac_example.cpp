@@ -26,7 +26,7 @@ int main(int argc, const char *argv[])
     // compile-time CRC calculation
     static_assert(
         CRC32::get_engine().calc(check_str, len) ==
-        CRC32::get_algo().check_val, "Invalid CRC32 check-val");
+        CRC32::check_val, "Invalid CRC32 check-val");
 
     // runtime calculation: single step mode
     auto crc32 = CRC32::get_engine();

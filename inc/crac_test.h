@@ -17,127 +17,125 @@
 //
 // CRC output types test
 //
-static_assert(std::is_same<CRC1::algo_type::type, uint8_t>::value, "");
-static_assert(std::is_same<CRC3_GSM::algo_type::type, uint8_t>::value, "");
-static_assert(std::is_same<CRC4_ITU::algo_type::type, uint8_t>::value, "");
-static_assert(std::is_same<CRC5_USB::algo_type::type, uint8_t>::value, "");
-static_assert(std::is_same<CRC6_ITU::algo_type::type, uint8_t>::value, "");
-static_assert(std::is_same<CRC7::algo_type::type, uint8_t>::value, "");
-static_assert(std::is_same<CRC8::algo_type::type, uint8_t>::value, "");
-static_assert(std::is_same<CRC10_GSM::algo_type::type, uint16_t>::value, "");
-static_assert(std::is_same<CRC11_UMTS::algo_type::type, uint16_t>::value, "");
-static_assert(std::is_same<CRC12_DECT::algo_type::type, uint16_t>::value, "");
-static_assert(std::is_same<CRC13_BBC::algo_type::type, uint16_t>::value, "");
-static_assert(std::is_same<CRC14_GSM::algo_type::type, uint16_t>::value, "");
-static_assert(std::is_same<CRC15::algo_type::type, uint16_t>::value, "");
-static_assert(std::is_same<CRC16_DECT_R::algo_type::type, uint16_t>::value, "");
-static_assert(std::is_same<CRC17_CAN_FD::algo_type::type, uint32_t>::value, "");
-static_assert(std::is_same<CRC21_CAN_FD::algo_type::type, uint32_t>::value, "");
-static_assert(std::is_same<CRC24_BLE::algo_type::type, uint32_t>::value, "");
-static_assert(std::is_same<CRC30_CDMA::algo_type::type, uint32_t>::value, "");
-static_assert(std::is_same<CRC31_PHILIPS::algo_type::type, uint32_t>::value, "");
-static_assert(std::is_same<CRC32_XFER::algo_type::type, uint32_t>::value, "");
-static_assert(std::is_same<CRC40_GSM::algo_type::type, uint64_t>::value, "");
-static_assert(std::is_same<CRC64_GO_ISO::algo_type::type, uint64_t>::value, "");
+static_assert(std::is_same<CRC1::type, uint8_t>::value, "");
+static_assert(std::is_same<CRC3_GSM::type, uint8_t>::value, "");
+static_assert(std::is_same<CRC4_ITU::type, uint8_t>::value, "");
+static_assert(std::is_same<CRC5_USB::type, uint8_t>::value, "");
+static_assert(std::is_same<CRC6_ITU::type, uint8_t>::value, "");
+static_assert(std::is_same<CRC7::type, uint8_t>::value, "");
+static_assert(std::is_same<CRC8::type, uint8_t>::value, "");
+static_assert(std::is_same<CRC10_GSM::type, uint16_t>::value, "");
+static_assert(std::is_same<CRC11_UMTS::type, uint16_t>::value, "");
+static_assert(std::is_same<CRC12_DECT::type, uint16_t>::value, "");
+static_assert(std::is_same<CRC13_BBC::type, uint16_t>::value, "");
+static_assert(std::is_same<CRC14_GSM::type, uint16_t>::value, "");
+static_assert(std::is_same<CRC15::type, uint16_t>::value, "");
+static_assert(std::is_same<CRC16_DECT_R::type, uint16_t>::value, "");
+static_assert(std::is_same<CRC17_CAN_FD::type, uint32_t>::value, "");
+static_assert(std::is_same<CRC21_CAN_FD::type, uint32_t>::value, "");
+static_assert(std::is_same<CRC24_BLE::type, uint32_t>::value, "");
+static_assert(std::is_same<CRC30_CDMA::type, uint32_t>::value, "");
+static_assert(std::is_same<CRC31_PHILIPS::type, uint32_t>::value, "");
+static_assert(std::is_same<CRC32_XFER::type, uint32_t>::value, "");
+static_assert(std::is_same<CRC40_GSM::type, uint64_t>::value, "");
+static_assert(std::is_same<CRC64_GO_ISO::type, uint64_t>::value, "");
 
 //
 // Reverse polynomials test
 //
-static_assert(CRC1::algo_type::poly_rev == 0x1, "");
-static_assert(CRC3_GSM::algo_type::poly_rev == 0x6, "");
-static_assert(CRC4_ITU::algo_type::poly_rev == 0xc, "");
-static_assert(CRC5_USB::algo_type::poly_rev == 0x14, "");
-static_assert(CRC5_EPC::algo_type::poly_rev == 0x12, "");
-static_assert(CRC5_ITU::algo_type::poly_rev == 0x15, "");
-static_assert(CRC6_ITU::algo_type::poly_rev == 0x30, "");
-static_assert(CRC6_CDMA2000_B::algo_type::poly_rev == 0x38, "");
-static_assert(CRC6_DARC::algo_type::poly_rev == 0x26, "");
-static_assert(CRC6_NR::algo_type::poly_rev == 0x21, "");
-static_assert(CRC6_CDMA2000_A::algo_type::poly_rev == 0x39, "");
-static_assert(CRC6_GSM::algo_type::poly_rev == 0x3d, "");
-static_assert(CRC7::algo_type::poly_rev == 0x48, "");
-static_assert(CRC7_UMTS::algo_type::poly_rev == 0x51, "");
-static_assert(CRC7_ROHC::algo_type::poly_rev == 0x79, "");
-// static_assert(CRC7_MVB::algo_type::poly_rev == 0x53, "");
-static_assert(CRC8::algo_type::poly_rev == 0xe0, "");
-static_assert(CRC8_EBU::algo_type::poly_rev == 0xb8, "");
-static_assert(CRC8_AUTOSAR::algo_type::poly_rev == 0xf4, "");
-static_assert(CRC8_MAXIM::algo_type::poly_rev == 0x8c, "");
-static_assert(CRC8_DARC::algo_type::poly_rev == 0x9c, "");
-static_assert(CRC8_GSM_B::algo_type::poly_rev == 0x92, "");
-static_assert(CRC8_CDMA2000::algo_type::poly_rev == 0xd9, "");
-static_assert(CRC8_DVB_S2::algo_type::poly_rev == 0xab, "");
-static_assert(CRC8_BLUETOOTH::algo_type::poly_rev == 0xe5, "");
-static_assert(CRC10_GSM::algo_type::poly_rev == 0x2ba, "");
-static_assert(CRC10::algo_type::poly_rev == 0x331, "");
-static_assert(CRC10_CDMA2000::algo_type::poly_rev == 0x26f, "");
-static_assert(CRC11_UMTS::algo_type::poly_rev == 0x0706, "");
-static_assert(CRC11::algo_type::poly_rev == 0x50e, "");
-static_assert(CRC11_NR::algo_type::poly_rev == 0x423, "");
-static_assert(CRC12_DECT::algo_type::poly_rev == 0xf01, "");
-static_assert(CRC12_GSM::algo_type::poly_rev == 0x8cb, "");
-static_assert(CRC12_CDMA2000::algo_type::poly_rev == 0xc8f, "");
-static_assert(CRC13_BBC::algo_type::poly_rev == 0x15e7, "");
-static_assert(CRC14_GSM::algo_type::poly_rev == 0x2d01, "");
-static_assert(CRC14_DARC::algo_type::poly_rev == 0x2804, "");
-static_assert(CRC15::algo_type::poly_rev == 0x4cd1, "");
-static_assert(CRC15_MPT1327::algo_type::poly_rev == 0x540b, "");
-static_assert(CRC16_DECT_R::algo_type::poly_rev == 0x91a0, "");
-static_assert(CRC16_NRSC5::algo_type::poly_rev == 0xd010, "");
-static_assert(CRC16_AUG_CCITT::algo_type::poly_rev == 0x8408, "");
-static_assert(CRC16_PROFIBUS::algo_type::poly_rev == 0xf3b8, "");
-// static_assert(CRC16_CHAKRAVARTY::algo_type::poly_rev == 0xa8f4, "");
-static_assert(CRC16_DNP::algo_type::poly_rev == 0xa6bc, "");
-static_assert(CRC16_M17::algo_type::poly_rev == 0xac9a, "");
-static_assert(CRC16_LJ1200::algo_type::poly_rev == 0xc6f6, "");
-static_assert(CRC16_OPENSAFETY_B::algo_type::poly_rev == 0xdaae, "");
-static_assert(CRC16_ARC::algo_type::poly_rev == 0xa001, "");
-static_assert(CRC16_T10_DIF::algo_type::poly_rev == 0xedd1, "");
-static_assert(CRC16_CDMA2000::algo_type::poly_rev == 0xe613, "");
-// static_assert(CRC16_ARINC::algo_type::poly_rev == 0xd405, "");
-static_assert(CRC16_TELEDISK::algo_type::poly_rev == 0xe905, "");
-static_assert(CRC17_CAN_FD::algo_type::poly_rev == 0x1b42d, "");
-static_assert(CRC21_CAN_FD::algo_type::poly_rev == 0x132281, "");
-static_assert(CRC24_BLE::algo_type::poly_rev == 0xda6000, "");
-static_assert(CRC24_INTERLAKEN::algo_type::poly_rev == 0xc6d14c, "");
-static_assert(CRC24_FLEXRAY_A::algo_type::poly_rev == 0xd3b6ba, "");
-static_assert(CRC24_LTE_B::algo_type::poly_rev == 0xc60001, "");
-static_assert(CRC24::algo_type::poly_rev == 0xdf3261, "");
-static_assert(CRC24_NR_C::algo_type::poly_rev == 0xe88d4d, "");
-static_assert(CRC30_CDMA::algo_type::poly_rev == 0x38e74301, "");
-static_assert(CRC31_PHILIPS::algo_type::poly_rev == 0x76dc4190, "");
-static_assert(CRC32_XFER::algo_type::poly_rev == 0xf5000000, "");
-static_assert(CRC32::algo_type::poly_rev == 0xedb88320, "");
-static_assert(CRC32_C::algo_type::poly_rev == 0x82f63b78, "");
-static_assert(CRC32_MEF::algo_type::poly_rev == 0xeb31d82e, "");
-// static_assert(CRC32_K2::algo_type::poly_rev == 0x992c1a4c, "");
-static_assert(CRC32_CDROM_EDC::algo_type::poly_rev == 0xd8018001, "");
-static_assert(CRC32_Q::algo_type::poly_rev == 0xd5828281, "");
-static_assert(CRC32_D::algo_type::poly_rev == 0xd419cc15, "");
-static_assert(CRC32_AUTOSAR::algo_type::poly_rev == 0xc8df352f, "");
-static_assert(CRC40_GSM::algo_type::poly_rev == 0x9000412000, "");
-static_assert(CRC64_GO_ISO::algo_type::poly_rev == 0xd800000000000000, "");
-static_assert(CRC64_MS::algo_type::poly_rev == 0x92c64265d32139a4, "");
-static_assert(CRC64::algo_type::poly_rev == 0xc96c5795d7870f42, "");
-static_assert(CRC64_REDIS::algo_type::poly_rev == 0x95ac9329ac4bc9b5, "");
+static_assert(CRC1::poly_rev == 0x1, "");
+static_assert(CRC3_GSM::poly_rev == 0x6, "");
+static_assert(CRC4_ITU::poly_rev == 0xc, "");
+static_assert(CRC5_USB::poly_rev == 0x14, "");
+static_assert(CRC5_EPC::poly_rev == 0x12, "");
+static_assert(CRC5_ITU::poly_rev == 0x15, "");
+static_assert(CRC6_ITU::poly_rev == 0x30, "");
+static_assert(CRC6_CDMA2000_B::poly_rev == 0x38, "");
+static_assert(CRC6_DARC::poly_rev == 0x26, "");
+static_assert(CRC6_NR::poly_rev == 0x21, "");
+static_assert(CRC6_CDMA2000_A::poly_rev == 0x39, "");
+static_assert(CRC6_GSM::poly_rev == 0x3d, "");
+static_assert(CRC7::poly_rev == 0x48, "");
+static_assert(CRC7_UMTS::poly_rev == 0x51, "");
+static_assert(CRC7_ROHC::poly_rev == 0x79, "");
+// static_assert(CRC7_MVB::poly_rev == 0x53, "");
+static_assert(CRC8::poly_rev == 0xe0, "");
+static_assert(CRC8_EBU::poly_rev == 0xb8, "");
+static_assert(CRC8_AUTOSAR::poly_rev == 0xf4, "");
+static_assert(CRC8_MAXIM::poly_rev == 0x8c, "");
+static_assert(CRC8_DARC::poly_rev == 0x9c, "");
+static_assert(CRC8_GSM_B::poly_rev == 0x92, "");
+static_assert(CRC8_CDMA2000::poly_rev == 0xd9, "");
+static_assert(CRC8_DVB_S2::poly_rev == 0xab, "");
+static_assert(CRC8_BLUETOOTH::poly_rev == 0xe5, "");
+static_assert(CRC10_GSM::poly_rev == 0x2ba, "");
+static_assert(CRC10::poly_rev == 0x331, "");
+static_assert(CRC10_CDMA2000::poly_rev == 0x26f, "");
+static_assert(CRC11_UMTS::poly_rev == 0x0706, "");
+static_assert(CRC11::poly_rev == 0x50e, "");
+static_assert(CRC11_NR::poly_rev == 0x423, "");
+static_assert(CRC12_DECT::poly_rev == 0xf01, "");
+static_assert(CRC12_GSM::poly_rev == 0x8cb, "");
+static_assert(CRC12_CDMA2000::poly_rev == 0xc8f, "");
+static_assert(CRC13_BBC::poly_rev == 0x15e7, "");
+static_assert(CRC14_GSM::poly_rev == 0x2d01, "");
+static_assert(CRC14_DARC::poly_rev == 0x2804, "");
+static_assert(CRC15::poly_rev == 0x4cd1, "");
+static_assert(CRC15_MPT1327::poly_rev == 0x540b, "");
+static_assert(CRC16_DECT_R::poly_rev == 0x91a0, "");
+static_assert(CRC16_NRSC5::poly_rev == 0xd010, "");
+static_assert(CRC16_AUG_CCITT::poly_rev == 0x8408, "");
+static_assert(CRC16_PROFIBUS::poly_rev == 0xf3b8, "");
+// static_assert(CRC16_CHAKRAVARTY::poly_rev == 0xa8f4, "");
+static_assert(CRC16_DNP::poly_rev == 0xa6bc, "");
+static_assert(CRC16_M17::poly_rev == 0xac9a, "");
+static_assert(CRC16_LJ1200::poly_rev == 0xc6f6, "");
+static_assert(CRC16_OPENSAFETY_B::poly_rev == 0xdaae, "");
+static_assert(CRC16_ARC::poly_rev == 0xa001, "");
+static_assert(CRC16_T10_DIF::poly_rev == 0xedd1, "");
+static_assert(CRC16_CDMA2000::poly_rev == 0xe613, "");
+// static_assert(CRC16_ARINC::poly_rev == 0xd405, "");
+static_assert(CRC16_TELEDISK::poly_rev == 0xe905, "");
+static_assert(CRC17_CAN_FD::poly_rev == 0x1b42d, "");
+static_assert(CRC21_CAN_FD::poly_rev == 0x132281, "");
+static_assert(CRC24_BLE::poly_rev == 0xda6000, "");
+static_assert(CRC24_INTERLAKEN::poly_rev == 0xc6d14c, "");
+static_assert(CRC24_FLEXRAY_A::poly_rev == 0xd3b6ba, "");
+static_assert(CRC24_LTE_B::poly_rev == 0xc60001, "");
+static_assert(CRC24::poly_rev == 0xdf3261, "");
+static_assert(CRC24_NR_C::poly_rev == 0xe88d4d, "");
+static_assert(CRC30_CDMA::poly_rev == 0x38e74301, "");
+static_assert(CRC31_PHILIPS::poly_rev == 0x76dc4190, "");
+static_assert(CRC32_XFER::poly_rev == 0xf5000000, "");
+static_assert(CRC32::poly_rev == 0xedb88320, "");
+static_assert(CRC32_C::poly_rev == 0x82f63b78, "");
+static_assert(CRC32_MEF::poly_rev == 0xeb31d82e, "");
+// static_assert(CRC32_K2::poly_rev == 0x992c1a4c, "");
+static_assert(CRC32_CDROM_EDC::poly_rev == 0xd8018001, "");
+static_assert(CRC32_Q::poly_rev == 0xd5828281, "");
+static_assert(CRC32_D::poly_rev == 0xd419cc15, "");
+static_assert(CRC32_AUTOSAR::poly_rev == 0xc8df352f, "");
+static_assert(CRC40_GSM::poly_rev == 0x9000412000, "");
+static_assert(CRC64_GO_ISO::poly_rev == 0xd800000000000000, "");
+static_assert(CRC64_MS::poly_rev == 0x92c64265d32139a4, "");
+static_assert(CRC64::poly_rev == 0xc96c5795d7870f42, "");
+static_assert(CRC64_REDIS::poly_rev == 0x95ac9329ac4bc9b5, "");
 
 // compile-time CRC tester
-template<typename AlgoDesc>
+template<typename Algo>
 constexpr void test_crc()
 {
     constexpr const uint8_t check_tab[] =
         {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
-    using algo_type = typename AlgoDesc::algo_type;
-    constexpr auto algo = AlgoDesc::get_algo();
-
     static_assert(
-        algo_type::_calc(check_tab, sizeof(check_tab), algo.init_in) ==
-        algo_type::_calc_tab(check_tab, sizeof(check_tab), algo.init_in),
+        Algo::_calc(check_tab, sizeof(check_tab), Algo::init_in) ==
+        Algo::_calc_tab(check_tab, sizeof(check_tab), Algo::init_in),
         "Calculation coherency test failed");
 
-    constexpr auto crc = algo._calc(check_tab, sizeof(check_tab), algo.init_in);
-    static_assert(algo._final(crc) == algo.check_val,
+    constexpr auto crc =
+        Algo::_calc_tab(check_tab, sizeof(check_tab), Algo::init_in);
+    static_assert(Algo::_final(crc) == Algo::check_val,
         "CRC check-value test failed");
 }
 
