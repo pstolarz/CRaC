@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2022 Piotr Stolarz
- * CRaC: C++ Cyclic Redundancy Check (CRC) template library.
+ * CRaC: C++17 Cyclic Redundancy Check (CRC) template library.
  *
  * Distributed under the 2-clause BSD License (the License)
  * see accompanying file LICENSE for details.
@@ -12,6 +12,10 @@
 
 /*
  * Compile-time tester. To be included from the library header only.
+ *
+ * NOTE: Since the header has impact on the compilation time as well as
+ * runtime size output, it is not recommended to use it for builds where
+ * these factors are important.
  */
 
 //
@@ -141,6 +145,9 @@ constexpr void test_crc()
 
 //
 // Function templates declaration forces compile-time CRC tests
+//
+// NOTE: The declarations forces a compiler to generate actual definitions
+// of the declared functions, therefore have influence on the runtime output.
 //
 template void test_crc<CRC1>();
 template void test_crc<CRC3_GSM>();

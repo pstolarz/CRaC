@@ -1,10 +1,9 @@
-# CRaC: C++ CRC template library
+# CRaC: C++17 CRC template library
 
 CRaC is C++ single-header template library aiming for fast calculation and
 limited runtime footprint needs (especially embedded systems case). The library
-extensively exploits compile-time oriented features of the C++ language,
-requiring at least C++14 compliant compiler, however for best performance
-results C++17 (or higher) is recommended.
+extensively exploits compile-time oriented features of the C++ language
+requiring at least C++17 compliant compiler.
 
 ## Features
 
@@ -18,9 +17,7 @@ form, optimized for a particular CRC algorithm. Moreover, if an input for
 a calculated CRC checksum is known at the compile time, the library may
 calculate it purely at the compilation stage with no footprint emitted to the
 runtime output. As an example - the library unit tests are performed entirely
-at the compile-time level by [`crac_test.h`](inc/crac_test.h) header, therefore
-may be performed during library user's project compilation phase, without
-overhead on the final runtime outcome.
+at the compile-time level by [`crac_test.h`](inc/crac_test.h) header.
 
 **Limited runtime footprint**
 

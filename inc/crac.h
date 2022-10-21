@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2022 Piotr Stolarz
- * CRaC: C++ Cyclic Redundancy Check (CRC) template library.
+ * CRaC: C++17 Cyclic Redundancy Check (CRC) template library.
  *
  * Distributed under the 2-clause BSD License (the License)
  * see accompanying file LICENSE for details.
@@ -13,16 +13,13 @@
 #ifndef __CRAC_H__
 #define __CRAC_H__
 
+#if __cplusplus < 201703L
+# error "CRaC requires at least C++17 compliant compiler"
+#endif
+
 #include <cstdint>
 #include <cstddef>      // size_t
 #include <type_traits>  // make_unsigned, is_same (tests only)
-
-// rid off C++17 compile-time-if statement errors for C++14 compiler
-#if __cplusplus >= 201703L
-# define __CONSTEXPR constexpr
-#else
-# define __CONSTEXPR
-#endif
 
 namespace crac {
 
@@ -74,7 +71,7 @@ struct crc_tab<Algo, false, crc_tab_e::TAB256>
         uint8_t i = 0;
         do {
             _tab[i] = Algo::_calc(&i, 1, 0);
-            if __CONSTEXPR (Algo::bits < 8) {
+            if constexpr (Algo::bits < 8) {
                 _tab[i] <<= (8 - Algo::bits);
             }
         } while (++i);
@@ -119,13 +116,13 @@ struct crc_tab<Algo, false, crc_tab_e::TAB16LH>
     {
         for (uint8_t i = 0; i < 16; i++) {
             _tab_l[i] = Algo::_calc(&i, 1, 0);
-            if __CONSTEXPR (Algo::bits < 8) {
+            if constexpr (Algo::bits < 8) {
                 _tab_l[i] <<= (8 - Algo::bits);
             }
 
             uint8_t ih = i << 4;
             _tab_h[i] = Algo::_calc(&ih, 1, 0);
-            if __CONSTEXPR (Algo::bits < 8) {
+            if constexpr (Algo::bits < 8) {
                 _tab_h[i] <<= (8 - Algo::bits);
             }
         }
@@ -233,6 +230,19 @@ struct crc_algo_poly<Bits, Poly, true, TabType>
         return crc;
     }
 
+    /*
+     * NOTE: This compile-time definition eliminates the usage of C++14
+     * compiler. constexpr static member requires to be initialized at its
+     * definition. On the other side C++14 doesn't allow to define static
+     * template members directly in the template, requiring them to be defined
+     * outside of the template class. Consequently an attempt to compile CRaC
+     * by C++14 will end up with linkage error caused by lack of 'lookup'
+     * symbol definition. To make the C++14 compiler happy, it would require
+     * to define lookup tables in separate compilation module(s), build them
+     * separately and combine at the linking stage. Unfortunately this approach
+     * eliminates the benefit of compile-time lookup tables generation and
+     * usage by a single-header include, the library has been designed for.
+     */
     // generate lookup table at the compile time
     constexpr static crc_tab<crc_algo_poly> lookup{};
 
@@ -250,7 +260,7 @@ struct crc_algo_poly<Bits, Poly, true, TabType>
 
         while (len--) {
             crc = crc ^ *in++;
-            if __CONSTEXPR (bits <= 8) {
+            if constexpr (bits <= 8) {
                 crc = lookup[crc];
             } else {
                 crc = (crc >> 8) ^ lookup[crc];
@@ -294,18 +304,18 @@ struct crc_algo_poly<Bits, Poly, false, TabType>
     constexpr static type _calc(const uint8_t *in, size_t len, type crc_in)
     {
         type crc = crc_in;
-        if __CONSTEXPR (bits < 8) {
+        if constexpr (bits < 8) {
             crc <<= (8 - bits);
         }
 
         while (len--) {
-            if __CONSTEXPR (bits <= 8) {
+            if constexpr (bits <= 8) {
                 crc ^= *in++;
             } else {
                 crc ^= (type)*in++ << (bits - 8);
             }
             for (int i = 8; i; i--) {
-                if __CONSTEXPR (bits < 8) {
+                if constexpr (bits < 8) {
                     crc = (crc & 0x80 ? poly << (8 - bits) : 0) ^ (crc << 1);
                 } else {
                     crc = (crc & ((type)1 << (bits - 1)) ?  poly : 0) ^ (crc << 1);
@@ -313,7 +323,7 @@ struct crc_algo_poly<Bits, Poly, false, TabType>
             }
         }
 
-        if __CONSTEXPR (bits < 8) {
+        if constexpr (bits < 8) {
             return crc >> (8 - bits);
         } else {
             return crc & mask;
@@ -328,12 +338,12 @@ struct crc_algo_poly<Bits, Poly, false, TabType>
         const uint8_t *in, size_t len, type crc_in)
     {
         type crc = crc_in;
-        if __CONSTEXPR (bits < 8) {
+        if constexpr (bits < 8) {
             crc <<= (8 - bits);
         }
 
         while (len--) {
-            if __CONSTEXPR (bits <= 8) {
+            if constexpr (bits <= 8) {
                 crc = lookup[crc ^ *in++];
             } else {
                 crc = (crc << 8) ^
@@ -341,7 +351,7 @@ struct crc_algo_poly<Bits, Poly, false, TabType>
             }
         }
 
-        if __CONSTEXPR (bits < 8) {
+        if constexpr (bits < 8) {
             return crc >> (8 - bits);
         } else {
             return crc & mask;
@@ -400,7 +410,7 @@ public:
      */
     constexpr inline static type _final(type crc)
     {
-        if __CONSTEXPR (refl_in != refl_out) {
+        if constexpr (refl_in != refl_out) {
             crc = bits_rev(crc, bits);
         }
         return (crc ^ xor_out);
@@ -646,6 +656,4 @@ using CRC64_REDIS = crc_algo<64, 0xad93d23594c935a9, true, true, 0, 0, 0xe9c6d91
 #endif
 
 } // crac namespace
-
-#undef __CONSTEXPR
 #endif /* __CRAC_H__ */

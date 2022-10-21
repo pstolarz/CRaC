@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2022 Piotr Stolarz
- * CRaC: C++ Cyclic Redundancy Check (CRC) template library.
+ * CRaC: C++17 Cyclic Redundancy Check (CRC) template library.
  *
  * Distributed under the 2-clause BSD License (the License)
  * see accompanying file LICENSE for details.
