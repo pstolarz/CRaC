@@ -125,6 +125,8 @@ static_assert(CRC64_MS::poly_rev == 0x92c64265d32139a4, "");
 static_assert(CRC64::poly_rev == 0xc96c5795d7870f42, "");
 static_assert(CRC64_REDIS::poly_rev == 0x95ac9329ac4bc9b5, "");
 
+namespace {
+
 // compile-time CRC tester
 template<typename Algo>
 constexpr void test_crc()
@@ -269,3 +271,44 @@ template void test_crc<CRC64>();
 template void test_crc<CRC64_WE>();
 template void test_crc<CRC64_XZ>();
 template void test_crc<CRC64_REDIS>();
+
+// compile-time CRC runtime objects size tester
+template<typename Algo>
+constexpr void test_rt_sizes()
+{
+    static_assert(sizeof(typename Algo::engine) == sizeof(typename Algo::type));
+
+    if constexpr (Algo::tab_type == crc_tab_e::TAB256) {
+        static_assert(sizeof(Algo::lookup) == 256 *sizeof(typename Algo::type));
+    } else {
+        static_assert(sizeof(Algo::lookup) == 32 * sizeof(typename Algo::type));
+    }
+}
+
+//
+// Force compile-time runtime objects size test
+//
+template void test_rt_sizes<CRC1>();
+template void test_rt_sizes<CRC3_GSM>();
+template void test_rt_sizes<CRC4_ITU>();
+template void test_rt_sizes<CRC5_USB>();
+template void test_rt_sizes<CRC6_ITU>();
+template void test_rt_sizes<CRC7>();
+template void test_rt_sizes<CRC8>();
+template void test_rt_sizes<CRC10_GSM>();
+template void test_rt_sizes<CRC11_UMTS>();
+template void test_rt_sizes<CRC12_DECT>();
+template void test_rt_sizes<CRC13_BBC>();
+template void test_rt_sizes<CRC14_GSM>();
+template void test_rt_sizes<CRC15>();
+template void test_rt_sizes<CRC16_DECT_R>();
+template void test_rt_sizes<CRC17_CAN_FD>();
+template void test_rt_sizes<CRC21_CAN_FD>();
+template void test_rt_sizes<CRC24_BLE>();
+template void test_rt_sizes<CRC30_CDMA>();
+template void test_rt_sizes<CRC31_PHILIPS>();
+template void test_rt_sizes<CRC32_XFER>();
+template void test_rt_sizes<CRC40_GSM>();
+template void test_rt_sizes<CRC64_GO_ISO>();
+
+} // unnamed namespace
