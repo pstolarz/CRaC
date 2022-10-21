@@ -27,7 +27,7 @@ to increase CRC computation speed, base on a single 256-elements table to
 calculate single-byte CRC checksum. Such approach may by a blocker for tiny
 embedded platforms, where 1kB CRC-32 lookup table is simply too large. CRaC
 incorporates two 16-elements lookup tables, drastically reducing the footprint,
-without significant performance penalty.
+without significant performance penalty (see below for details).
 
 NOTE: Single 256-elements lookup table is still possible to use by defining
 `CRAC_TAB256`.
@@ -39,6 +39,36 @@ predefined CRCs ready to use out of the box. Note, the definitions are provided
 directly at the compile-time level, therefore don't occupy runtime outcome
 unless reference exists in the source code - if you don't use it, you don't pay
 for it.
+
+## Performance
+
+CRaC, as most modern C++ libraries, heavily depends on compiler optimization
+techniques to produce fast and efficient code. The following table presents
+CRC-32 computation timings for 1 million iterations over 256-bytes table with
+256-lookup table used (values in ms):
+
+| 256-lookup | clang -O | clang    | gcc -O   | gcc      |
+|------------|----------|----------|----------|----------|
+| CRaC       |**0.452** | 1.440    | 0.524    | 1.48     |
+| CRC++      | 0.525    | 1.170    | 0.522    | 1.08     |
+| libcrc     | 0.516    | 0.518    | 0.516    | 0.517    |
+
+As may be seen, decent C++ compiler (clang) with basic optimization turned on
+(`-O`) produces code even more efficient than pure C library (`libcrc`).
+
+**256 vs 32-elements lookups**
+
+By default CRaC works with 32-elements lookup tables, which produce lower
+footprint size with some performance loss as presented in the following table
+(the same test condition as previously):
+
+|            | clang -O | clang    | gcc -O   | gcc      |
+|------------|----------|----------|----------|----------|
+| 256-lookup | 0.452    | 1.440    | 0.524    | 1.48     |
+| 32-lookup  | 0.676    | 1.685    | 0.687    | 1.67     |
+
+As a conclusion, unoptimized compilation introduces performance loss an order
+of magnitude larger than 32-bytes lookup tables usage.
 
 ## Usage
 
