@@ -57,7 +57,7 @@ struct crc_tab<Algo, true, crc_tab_e::TAB256>
         } while (++i);
     }
 
-    constexpr inline typename Algo::type tab(uint8_t in) const {
+    constexpr inline typename Algo::type operator[](uint8_t in) const {
         return _tab[in];
     }
 
@@ -80,7 +80,7 @@ struct crc_tab<Algo, false, crc_tab_e::TAB256>
         } while (++i);
     }
 
-    constexpr inline typename Algo::type tab(uint8_t in) const {
+    constexpr inline typename Algo::type operator[](uint8_t in) const {
         return _tab[in];
     }
 
@@ -102,7 +102,7 @@ struct crc_tab<Algo, true, crc_tab_e::TAB16LH>
         }
     }
 
-    constexpr inline typename Algo::type tab(uint8_t in) const {
+    constexpr inline typename Algo::type operator[](uint8_t in) const {
         return _tab_l[in & 0xf] ^ _tab_h[in >> 4];
     }
 
@@ -131,7 +131,7 @@ struct crc_tab<Algo, false, crc_tab_e::TAB16LH>
         }
     }
 
-    constexpr inline typename Algo::type tab(uint8_t in) const {
+    constexpr inline typename Algo::type operator[](uint8_t in) const {
         return _tab_l[in & 0xf] ^ _tab_h[in >> 4];
     }
 
@@ -251,9 +251,9 @@ struct crc_algo_poly<Bits, Poly, true, TabType>
         while (len--) {
             crc = crc ^ *in++;
             if __CONSTEXPR (bits <= 8) {
-                crc = lookup.tab(crc);
+                crc = lookup[crc];
             } else {
-                crc = (crc >> 8) ^ lookup.tab(crc);
+                crc = (crc >> 8) ^ lookup[crc];
             }
         }
         return crc;
@@ -334,10 +334,10 @@ struct crc_algo_poly<Bits, Poly, false, TabType>
 
         while (len--) {
             if __CONSTEXPR (bits <= 8) {
-                crc = lookup.tab(crc ^ *in++);
+                crc = lookup[crc ^ *in++];
             } else {
                 crc = (crc << 8) ^
-                    lookup.tab((crc >> (bits - 8)) ^ (type)*in++);
+                    lookup[(crc >> (bits - 8)) ^ (type)*in++];
             }
         }
 
