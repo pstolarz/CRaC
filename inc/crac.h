@@ -424,7 +424,14 @@ public:
         if constexpr (refl_in != refl_out) {
             crc = bits_rev(crc, bits);
         }
-        return (crc ^ xor_out);
+        if constexpr (!xor_out) {
+            return crc;
+        } else
+        if constexpr ((xor_out == mask) && (8 * sizeof(type) == bits)) {
+            return ~crc;
+        } else {
+            return (crc ^ xor_out);
+        }
     }
 
     /**
