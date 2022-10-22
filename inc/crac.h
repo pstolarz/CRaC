@@ -17,9 +17,8 @@
 # error "CRaC requires at least C++17 compliant compiler"
 #endif
 
-#include <cstdint>
-#include <cstddef>      // size_t
-#include <type_traits>  // make_unsigned, is_same (tests only)
+#include <stdint.h>
+#include <stddef.h> // size_t
 
 namespace crac {
 
@@ -50,16 +49,16 @@ struct crc_tab<Algo, true, crc_tab_e::TAB256>
     {
         uint8_t i = 0;
         do {
-            _tab[i] = Algo::_calc(&i, 1, 0);
+            tab[i] = Algo::_calc(&i, 1, 0);
         } while (++i);
     }
 
     constexpr inline typename Algo::type operator[](uint8_t in) const {
-        return _tab[in];
+        return tab[in];
     }
 
 private:
-    typename Algo::type _tab[256] = {};
+    typename Algo::type tab[256] = {};
 };
 
 // direct-input, 256 elements table
@@ -70,19 +69,19 @@ struct crc_tab<Algo, false, crc_tab_e::TAB256>
     {
         uint8_t i = 0;
         do {
-            _tab[i] = Algo::_calc(&i, 1, 0);
+            tab[i] = Algo::_calc(&i, 1, 0);
             if constexpr (Algo::bits < 8) {
-                _tab[i] <<= (8 - Algo::bits);
+                tab[i] <<= (8 - Algo::bits);
             }
         } while (++i);
     }
 
     constexpr inline typename Algo::type operator[](uint8_t in) const {
-        return _tab[in];
+        return tab[in];
     }
 
 private:
-    typename Algo::type _tab[256] = {};
+    typename Algo::type tab[256] = {};
 };
 
 // reflected-input, 2*16 elements table
@@ -92,20 +91,20 @@ struct crc_tab<Algo, true, crc_tab_e::TAB16LH>
     constexpr crc_tab()
     {
         for (uint8_t i = 0; i < 16; i++) {
-            _tab_l[i] = Algo::_calc(&i, 1, 0);
+            tab_l[i] = Algo::_calc(&i, 1, 0);
 
             uint8_t ih = i << 4;
-            _tab_h[i] = Algo::_calc(&ih, 1, 0);
+            tab_h[i] = Algo::_calc(&ih, 1, 0);
         }
     }
 
     constexpr inline typename Algo::type operator[](uint8_t in) const {
-        return _tab_l[in & 0xf] ^ _tab_h[in >> 4];
+        return tab_l[in & 0xf] ^ tab_h[in >> 4];
     }
 
 private:
-    typename Algo::type _tab_l[16] = {};
-    typename Algo::type _tab_h[16] = {};
+    typename Algo::type tab_l[16] = {};
+    typename Algo::type tab_h[16] = {};
 };
 
 // direct-input, 2*16 elements table
@@ -115,26 +114,26 @@ struct crc_tab<Algo, false, crc_tab_e::TAB16LH>
     constexpr crc_tab()
     {
         for (uint8_t i = 0; i < 16; i++) {
-            _tab_l[i] = Algo::_calc(&i, 1, 0);
+            tab_l[i] = Algo::_calc(&i, 1, 0);
             if constexpr (Algo::bits < 8) {
-                _tab_l[i] <<= (8 - Algo::bits);
+                tab_l[i] <<= (8 - Algo::bits);
             }
 
             uint8_t ih = i << 4;
-            _tab_h[i] = Algo::_calc(&ih, 1, 0);
+            tab_h[i] = Algo::_calc(&ih, 1, 0);
             if constexpr (Algo::bits < 8) {
-                _tab_h[i] <<= (8 - Algo::bits);
+                tab_h[i] <<= (8 - Algo::bits);
             }
         }
     }
 
     constexpr inline typename Algo::type operator[](uint8_t in) const {
-        return _tab_l[in & 0xf] ^ _tab_h[in >> 4];
+        return tab_l[in & 0xf] ^ tab_h[in >> 4];
     }
 
 private:
-    typename Algo::type _tab_l[16] = {};
-    typename Algo::type _tab_h[16] = {};
+    typename Algo::type tab_l[16] = {};
+    typename Algo::type tab_h[16] = {};
 };
 
 constexpr static unsigned pwr2_ceil(unsigned v)
@@ -154,6 +153,20 @@ template<> struct pwr2<32> { using type = uint32_t; };
 template<> struct pwr2<64> { using type = uint64_t; };
 template<unsigned U> using pwr2_t = typename pwr2<U>::type;
 
+// std::make_unsigned counterpart
+template<typename T> struct _make_unsigned;
+template<> struct _make_unsigned<char> { using type = unsigned char; };
+template<> struct _make_unsigned<unsigned char> { using type = unsigned char; };
+template<> struct _make_unsigned<short int> { using type = unsigned short int; };
+template<> struct _make_unsigned<unsigned short int> { using type = unsigned short int; };
+template<> struct _make_unsigned<int> { using type = unsigned int; };
+template<> struct _make_unsigned<unsigned int> { using type = unsigned int; };
+template<> struct _make_unsigned<long> { using type = unsigned long; };
+template<> struct _make_unsigned<unsigned long> { using type = unsigned long; };
+template<> struct _make_unsigned<long long> { using type = unsigned long long; };
+template<> struct _make_unsigned<unsigned long long> { using type = unsigned long long; };
+template<typename T> using _make_unsigned_t = typename _make_unsigned<T>::type;
+
 constexpr static uint8_t rev16_tab[] = {
     0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe,
     0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf
@@ -165,7 +178,7 @@ constexpr static uint8_t rev16_tab[] = {
 template<typename T>
 constexpr inline T bits_rev(T in, unsigned bits = 8 * sizeof(T))
 {
-    typename std::make_unsigned_t<T> out = 0;
+    _make_unsigned_t<T> out = 0;
 
     for (; bits > 4; bits -= 4) {
         out |= rev16_tab[in & 0xf];

@@ -18,31 +18,38 @@
  * these factors are important.
  */
 
+namespace {
+
+// std::is_same counterpart
+template<typename T1, typename T2> struct _is_same { constexpr static bool value = false; };
+template<typename T> struct _is_same<T, T> { constexpr static bool value = true; };
+template<typename T1, typename T2> constexpr static bool _is_same_v = _is_same<T1, T2>::value;
+
 //
 // CRC output types test
 //
-static_assert(std::is_same<CRC1::type, uint8_t>::value, "");
-static_assert(std::is_same<CRC3_GSM::type, uint8_t>::value, "");
-static_assert(std::is_same<CRC4_ITU::type, uint8_t>::value, "");
-static_assert(std::is_same<CRC5_USB::type, uint8_t>::value, "");
-static_assert(std::is_same<CRC6_ITU::type, uint8_t>::value, "");
-static_assert(std::is_same<CRC7::type, uint8_t>::value, "");
-static_assert(std::is_same<CRC8::type, uint8_t>::value, "");
-static_assert(std::is_same<CRC10_GSM::type, uint16_t>::value, "");
-static_assert(std::is_same<CRC11_UMTS::type, uint16_t>::value, "");
-static_assert(std::is_same<CRC12_DECT::type, uint16_t>::value, "");
-static_assert(std::is_same<CRC13_BBC::type, uint16_t>::value, "");
-static_assert(std::is_same<CRC14_GSM::type, uint16_t>::value, "");
-static_assert(std::is_same<CRC15::type, uint16_t>::value, "");
-static_assert(std::is_same<CRC16_DECT_R::type, uint16_t>::value, "");
-static_assert(std::is_same<CRC17_CAN_FD::type, uint32_t>::value, "");
-static_assert(std::is_same<CRC21_CAN_FD::type, uint32_t>::value, "");
-static_assert(std::is_same<CRC24_BLE::type, uint32_t>::value, "");
-static_assert(std::is_same<CRC30_CDMA::type, uint32_t>::value, "");
-static_assert(std::is_same<CRC31_PHILIPS::type, uint32_t>::value, "");
-static_assert(std::is_same<CRC32_XFER::type, uint32_t>::value, "");
-static_assert(std::is_same<CRC40_GSM::type, uint64_t>::value, "");
-static_assert(std::is_same<CRC64_GO_ISO::type, uint64_t>::value, "");
+static_assert(_is_same_v<CRC1::type, uint8_t>, "");
+static_assert(_is_same_v<CRC3_GSM::type, uint8_t>, "");
+static_assert(_is_same_v<CRC4_ITU::type, uint8_t>, "");
+static_assert(_is_same_v<CRC5_USB::type, uint8_t>, "");
+static_assert(_is_same_v<CRC6_ITU::type, uint8_t>, "");
+static_assert(_is_same_v<CRC7::type, uint8_t>, "");
+static_assert(_is_same_v<CRC8::type, uint8_t>, "");
+static_assert(_is_same_v<CRC10_GSM::type, uint16_t>, "");
+static_assert(_is_same_v<CRC11_UMTS::type, uint16_t>, "");
+static_assert(_is_same_v<CRC12_DECT::type, uint16_t>, "");
+static_assert(_is_same_v<CRC13_BBC::type, uint16_t>, "");
+static_assert(_is_same_v<CRC14_GSM::type, uint16_t>, "");
+static_assert(_is_same_v<CRC15::type, uint16_t>, "");
+static_assert(_is_same_v<CRC16_DECT_R::type, uint16_t>, "");
+static_assert(_is_same_v<CRC17_CAN_FD::type, uint32_t>, "");
+static_assert(_is_same_v<CRC21_CAN_FD::type, uint32_t>, "");
+static_assert(_is_same_v<CRC24_BLE::type, uint32_t>, "");
+static_assert(_is_same_v<CRC30_CDMA::type, uint32_t>, "");
+static_assert(_is_same_v<CRC31_PHILIPS::type, uint32_t>, "");
+static_assert(_is_same_v<CRC32_XFER::type, uint32_t>, "");
+static_assert(_is_same_v<CRC40_GSM::type, uint64_t>, "");
+static_assert(_is_same_v<CRC64_GO_ISO::type, uint64_t>, "");
 
 //
 // Reverse polynomials test
@@ -124,8 +131,6 @@ static_assert(CRC64_GO_ISO::poly_rev == 0xd800000000000000, "");
 static_assert(CRC64_MS::poly_rev == 0x92c64265d32139a4, "");
 static_assert(CRC64::poly_rev == 0xc96c5795d7870f42, "");
 static_assert(CRC64_REDIS::poly_rev == 0x95ac9329ac4bc9b5, "");
-
-namespace {
 
 // compile-time CRC tester
 template<typename Algo>

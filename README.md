@@ -60,7 +60,7 @@ As may be seen, decent C++ compiler (clang) with basic optimization turned on
 
 By default CRaC works with 32-elements lookup tables, which produce lower
 footprint size with some performance loss as presented in the following table
-(the same test condition as previously):
+(the same test conditions as previously):
 
 |            | clang -O | clang    | gcc -O   | gcc      |
 |------------|----------|----------|----------|----------|
