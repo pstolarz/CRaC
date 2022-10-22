@@ -47,7 +47,7 @@ techniques to produce fast and efficient code. The following table presents
 CRC-32 computation timings for 1 million iterations over 256-bytes table with
 256-lookup table used (values in ms):
 
-| 256-lookup | clang -O | clang    | gcc -O   | gcc      |
+|            | clang -O | clang    | gcc -O   | gcc      |
 |------------|----------|----------|----------|----------|
 | CRaC       |**0.452** | 1.440    | 0.524    | 1.48     |
 | CRC++      | 0.525    | 1.170    | 0.522    | 1.08     |
@@ -60,7 +60,7 @@ As may be seen, decent C++ compiler (clang) with basic optimization turned on
 
 By default CRaC works with 32-elements lookup tables, which produce lower
 footprint size with some performance loss as presented in the following table
-(the same test conditions as previously):
+(the same test conditions as previously; values in ms):
 
 |            | clang -O | clang    | gcc -O   | gcc      |
 |------------|----------|----------|----------|----------|
@@ -69,6 +69,23 @@ footprint size with some performance loss as presented in the following table
 
 As a conclusion, unoptimized compilation introduces performance loss an order
 of magnitude larger than 32-bytes lookup tables usage.
+
+**Runtime footprint**
+
+CRaC is characterized by reduced runtime footprint size, which is especially
+important factor in the embedded systems area. The following table presents
+various CRC types usage, compiled for AVR 8-bit platform (gcc-avr toolchain)
+with size optimization turned on (`-Os`).
+
+|                     | FLASH [B]          | RAM [B]  |
+|---------------------|--------------------|----------|
+| CRC-8 [32-lookup]   | 74(code)+32(LU)    | 32(LU)   |
+| CRC-8 [256-lookup]  | 50(code)+256(LU)   | 256(LU)  |
+| CRC-32 [32-lookup]  | 144(code)+128(LU)  | 128(LU)  |
+| CRC-32 [256-lookup] | 92(code)+1024(LU)  | 1024(LU) |
+| CRC-64 [32-lookup]  | 198(code)+256(LU)  | 256(LU)  |
+| CRC-64 [256-lookup] | 108(code)+2048(LU) | 2048(LU) |
+
 
 ## Usage
 
