@@ -14,7 +14,6 @@
 #include <sys/time.h>
 #include <cstdio>
 
-// use 256 lookup table
 #define CRAC_TAB256
 #include "crac.h"
 

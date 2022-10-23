@@ -12,7 +12,7 @@
 
 #include <cassert>
 
-// use 256 lookup table
+// define to use 256-elements lookup table
 //#define CRAC_TAB256
 #include "crac.h"
 

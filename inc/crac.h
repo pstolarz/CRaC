@@ -669,7 +669,7 @@ using CRC64_XZ = crc_algo<64, 0x42f0e1eba9ea3693, true, true, 0xffffffffffffffff
 using CRC64_GO_ECMA = CRC64_XZ;
 using CRC64_REDIS = crc_algo<64, 0xad93d23594c935a9, true, true, 0, 0, 0xe9c6d914c4b8d9ca>;
 
-#ifdef _CRAC_TEST_
+#ifdef CRAC_TEST
 # include "crac_test.h"
 #endif
 

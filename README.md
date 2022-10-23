@@ -17,7 +17,8 @@ form, optimized for a particular CRC algorithm. Moreover, if an input for
 a calculated CRC checksum is known at the compile time, the library may
 calculate it purely at the compilation stage with no footprint emitted to the
 runtime output. As an example - the library unit tests are performed entirely
-at the compile-time level by [`crac_test.h`](inc/crac_test.h) header.
+at the compile-time level by [`crac_test.h`](inc/crac_test.h) header, and may
+be activated by defining `CRAC_TEST`.
 
 **Limited runtime footprint**
 
@@ -45,7 +46,7 @@ for it.
 CRaC, as most modern C++ libraries, heavily depends on compiler optimization
 techniques to produce fast and efficient code. The following table presents
 CRC-32 computation timings for 1 million iterations over 256-bytes table with
-256-lookup table used (values in ms):
+256-elements lookup table used (values in ms):
 
 |            | clang -O | clang    | gcc -O   | gcc      |
 |------------|----------|----------|----------|----------|
@@ -68,7 +69,7 @@ footprint size with some performance loss as presented in the following table
 | 32-lookup  | 0.676    | 1.685    | 0.687    | 1.67     |
 
 As a conclusion, unoptimized compilation introduces performance loss an order
-of magnitude larger than 32-bytes lookup tables usage.
+of magnitude larger than 32-elements lookup tables usage.
 
 **Runtime footprint**
 
@@ -95,7 +96,9 @@ the runtime phase. In the latter case the computation may be performed in two
 types of modes - single step mode and the block mode.
 
 ```c++
-#include "crac.h" // CRaC header
+// define to use 256-elements lookup table
+//#define CRAC_TAB256
+#include "crac.h"
 
 // ...
 
