@@ -406,7 +406,7 @@ public:
     /// CRC in reflected-output mode (@c true), direct-output (@ false)
     constexpr static bool refl_out = ReflOut;
     /// Initial CRC input value
-    constexpr static type init_in =
+    constexpr static type init_val =
         (refl_in ?  bits_rev(InitVal, bits) : (InitVal & mask));
     /// Final XOR value
     constexpr static type xor_out = (XorOut & mask);
@@ -440,7 +440,7 @@ public:
     struct engine
     {
         /// Create engine for specific CRC algorithm
-        constexpr engine(): crc(init_in) {}
+        constexpr engine(): crc(init_val) {}
 
         /**
          * Calculate CRC for given input bytes - block mode.
@@ -460,7 +460,7 @@ public:
          */
         inline type final() {
             type res = crc_algo::_final(crc);
-            crc = init_in;
+            crc = init_val;
             return res;
         }
 
@@ -471,7 +471,7 @@ public:
          *     used in the block mode.
          */
         constexpr inline type calc(const uint8_t *in, size_t len) const {
-            return crc_algo::_final(crc_algo::_calc_tab(in, len, init_in));
+            return crc_algo::_final(crc_algo::_calc_tab(in, len, init_val));
         }
 
     private:

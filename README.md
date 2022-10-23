@@ -124,7 +124,7 @@ assert(res == crc32.final());
 
 The library provides the following set of predefined CRCs:
 
-| CRC                    | Poly               | ReflIn | ReflOut | Init     | XorOut   | CheckVal           |
+| CRC                    | Poly               | ReflIn | ReflOut | InitVal  | XorOut   | CheckVal           |
 |------------------------|--------------------|--------|---------|----------|----------|--------------------|
 | CRC1                   | 0x1                | Y      | Y       | 0        | 0        | 0x1                |
 | CRC3_GSM               | 0x3                | N      | N       | 0        | ~0       | 0x4                |

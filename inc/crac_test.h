@@ -140,12 +140,12 @@ constexpr void test_crc()
         {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
     static_assert(
-        Algo::_calc(check_tab, sizeof(check_tab), Algo::init_in) ==
-        Algo::_calc_tab(check_tab, sizeof(check_tab), Algo::init_in),
+        Algo::_calc(check_tab, sizeof(check_tab), Algo::init_val) ==
+        Algo::_calc_tab(check_tab, sizeof(check_tab), Algo::init_val),
         "Calculation coherency test failed");
 
     constexpr auto crc =
-        Algo::_calc_tab(check_tab, sizeof(check_tab), Algo::init_in);
+        Algo::_calc_tab(check_tab, sizeof(check_tab), Algo::init_val);
     static_assert(Algo::_final(crc) == Algo::check_val,
         "CRC check-value test failed");
 }
