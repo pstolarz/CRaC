@@ -380,9 +380,12 @@ struct crc_algo_poly<Bits, Poly, false, TabType>
  *     coefficients), if @false in direct-input mode.
  * @param ReflOut If @c true the CRC works in reflected-output mode,
  *     if @false in direct-output mode.
- * @param InitVal Initial CRC input value. Note the value is inverted
- *     for reflected-input CRC algorithms. See @ref bits_rev().
- * @param XorOut Value used to XOR final CRC value.
+ * @param InitVal Initial CRC input value. This parameter is inverted for
+ *     reflected-input CRC algorithms (see @ref bits_rev()). Note, the
+ *     value is AND'ed with CRC bit-mask, therefore accepts  all-1s type of
+ *     initialization.
+ * @param XorOut Value used to XOR final CRC value. Note, the value is AND'ed
+ *     with CRC bit-mask, therefore accepts all-1s type of initialization.
  * @param CheckVal CRC check value (CRC computed on "123456789" UTF-8
  *     string w/o trailing null-terminator).
  * @param TabType Type of CRC lookup table.
