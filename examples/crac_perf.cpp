@@ -33,11 +33,10 @@ int main(int argc, const char *argv[])
     for (size_t i = 0; i < sizeof(in); i++) in[i] = i;
 
     CRC32::type crc;
-    auto crc32 = CRC32::get_engine();
-
     time_t start = get_ts();
+
     for (unsigned i = 0; i < 1'000'000; i++) {
-        crc = crc32.calc(in, sizeof(in));
+        crc = CRC32::calc(in, sizeof(in));
     }
     time_t stop = get_ts();
 

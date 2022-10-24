@@ -281,7 +281,7 @@ template void test_crc<CRC64_REDIS>();
 template<typename Algo>
 constexpr void test_rt_sizes()
 {
-    static_assert(sizeof(typename Algo::engine) == sizeof(typename Algo::type));
+    static_assert(sizeof(typename Algo::block_eng) == sizeof(typename Algo::type));
 
     if constexpr (Algo::tab_type == crc_tab_e::TAB256) {
         static_assert(sizeof(Algo::lookup) == 256 *sizeof(typename Algo::type));

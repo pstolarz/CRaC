@@ -109,18 +109,18 @@ constexpr const size_t len = sizeof(check_str) - 1;
 
 // compile-time CRC calculation
 static_assert(
-    CRC32::get_engine().calc(check_str, len) ==
+    CRC32::calc(check_str, len) ==
     CRC32::check_val, "Invalid CRC32 check-val");
 
 // runtime calculation: single step mode
-auto crc32 = CRC32::get_engine();
-auto res = crc32.calc(check_str, len);
+auto crc = CRC32::calc(check_str, len);
 
 // runtime calculation: block mode
-crc32.update(check_str, 3);
-crc32.update(check_str + 3, 3);
-crc32.update(check_str + 6, len - 6);
-assert(res == crc32.final());
+auto block_eng = CRC32::get_block_eng();
+block_eng.update(check_str, 3);
+block_eng.update(check_str + 3, 3);
+block_eng.update(check_str + 6, len - 6);
+assert(crc == block_eng.final());
 ```
 
 ## Predefined CRCs

@@ -262,7 +262,7 @@ struct crc_algo_poly<Bits, Poly, true, TabType>
      * Calculate CRC for given input bytes - fast version (basing on the
      * CRC lookup table).
      *
-     * @note This is "plumbing" routine. See @ref crc_algo::engine::calc()
+     * @note This is "plumbing" routine. See @ref crc_algo::calc()
      *     for more usable variant.
      */
     constexpr inline static type _calc_tab(
@@ -416,8 +416,8 @@ public:
     /**
      * Calculate final CRC value for a given @c crc.
      *
-     * @note This is "plumbing" routine. See @ref crc_algo::engine::final()
-     *     for more usable variant.
+     * @note This is "plumbing" routine. See @ref crc_algo::block_eng::final()
+     *     and @ref crc_algo::calc() for more usable variants.
      */
     constexpr inline static type _final(type crc)
     {
@@ -435,52 +435,49 @@ public:
     }
 
     /**
-     * CRC calculation engine.
+     * Calculate CRC for given input bytes - single step mode.
      */
-    struct engine
+    constexpr inline static type calc(const uint8_t *in, size_t len) {
+      return _final(base::_calc_tab(in, len, init_val));
+    }
+
+    /**
+     * CRC block-mode calculation engine.
+     */
+    struct block_eng
     {
-        /// Create engine for specific CRC algorithm
-        constexpr engine(): crc(init_val) {}
+        /// Create block-mode calculation engine for specific CRC algorithm
+        block_eng() = default;
 
         /**
-         * Calculate CRC for given input bytes - block mode.
+         * Calculate CRC for given input bytes.
          *
          * Calculation engine collects passed input blocks for processing CRC
          * until @ref final() method call.
          */
         inline void update(const uint8_t *in, size_t len) {
-            crc = crc_algo::_calc_tab(in, len, crc);
+            crc = base::_calc_tab(in, len, crc);
         }
 
         /**
-         * Return final CRC value - block mode.
+         * Return final CRC value.
          *
-         * Once the value is returned the method resets the engine for
-         * subsequent block calculations.
+         * Once the value is returned the method resets the calculation engine
+         * for subsequent block calculations.
          */
         inline type final() {
-            type res = crc_algo::_final(crc);
+            type res = _final(crc);
             crc = init_val;
             return res;
         }
 
-        /**
-         * Calculate CRC for given input bytes - single step mode.
-         *
-         * @note The method doesn't interfere with @c update() and @c final()
-         *     used in the block mode.
-         */
-        constexpr inline type calc(const uint8_t *in, size_t len) const {
-            return crc_algo::_final(crc_algo::_calc_tab(in, len, init_val));
-        }
-
     private:
-        type crc;
+        type crc = init_val;
     };
 
-    /// Get CRC calculation engine
-    constexpr inline static engine get_engine() {
-        return engine{};
+    /// Get CRC block-mode calculation engine
+    inline static block_eng get_block_eng() {
+        return block_eng{};
     }
 };
 
