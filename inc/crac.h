@@ -167,17 +167,20 @@ template<> struct _make_unsigned<long long> { using type = unsigned long long; }
 template<> struct _make_unsigned<unsigned long long> { using type = unsigned long long; };
 template<typename T> using _make_unsigned_t = typename _make_unsigned<T>::type;
 
-constexpr static uint8_t rev16_tab[] = {
-    0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe,
-    0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf
-};
-
 } // unnamed namespace
 
-/// Bits reversal (helper routine).
+constexpr inline uint8_t crc_check_str[] =
+    {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
+
+/// Bits reversal (helper, utility routine).
 template<typename T>
 constexpr inline T bits_rev(T in, unsigned bits = 8 * sizeof(T))
 {
+    constexpr uint8_t rev16_tab[] = {
+        0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe,
+        0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf
+    };
+
     _make_unsigned_t<T> out = 0;
 
     for (; bits > 4; bits -= 4) {
@@ -386,13 +389,16 @@ struct crc_algo_poly<Bits, Poly, false, TabType>
  *     initialization.
  * @param XorOut Value used to XOR final CRC value. Note, the value is AND'ed
  *     with CRC bit-mask, therefore accepts all-1s type of initialization.
- * @param CheckVal CRC check value (CRC computed on "123456789" UTF-8
- *     string w/o trailing null-terminator).
+ * @param CheckVal CRC check-value (CRC computed on "123456789" UTF-8
+ *     string w/o trailing null-terminator). If this parameter is provided,
+ *     its correctness is verified, if not then @c crc_algo::check_val is set
+ *     to the proper check-value. All the computations are performed at the
+ *     compile time.
  * @param TabType Type of CRC lookup table.
  */
 template<
     unsigned Bits, uint64_t Poly, bool ReflIn, bool ReflOut,
-    uint64_t InitVal, uint64_t XorOut, uint64_t CheckVal,
+    uint64_t InitVal, uint64_t XorOut, uint64_t CheckVal = ~(uint64_t)0,
     crc_tab_e TabType = def_tab_type>
 struct crc_algo: crc_algo_poly<Bits, Poly, ReflIn, TabType>
 {
@@ -400,7 +406,7 @@ private:
     using base = crc_algo_poly<Bits, Poly, ReflIn, TabType>;
 
 public:
-    // aliases to base class
+    // aliases to base class members
     constexpr static auto bits  = base::bits;
     constexpr static auto mask  = base::mask;
     constexpr static auto refl_in  = base::refl_in;
@@ -413,8 +419,6 @@ public:
         (refl_in ?  bits_rev(InitVal, bits) : (InitVal & mask));
     /// Final XOR value
     constexpr static type xor_out = (XorOut & mask);
-    /// CRC check value
-    constexpr static type check_val = CheckVal;
 
     /**
      * Calculate final CRC value for a given @c crc.
@@ -443,6 +447,15 @@ public:
     constexpr inline static type calc(const uint8_t *in, size_t len) {
       return _final(base::_calc_tab(in, len, init_val));
     }
+
+    // verify check-value correctness
+    static_assert(CheckVal == ~(uint64_t)0 ||
+        CheckVal == calc(crc_check_str, sizeof(crc_check_str)),
+        "CRC check-value doesn't match");
+
+    /// CRC check-value
+    constexpr static type check_val = (CheckVal == ~(uint64_t)0 ?
+        calc(crc_check_str, sizeof(crc_check_str)) : CheckVal);
 
     /**
      * CRC block-mode calculation engine.

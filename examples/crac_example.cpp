@@ -20,23 +20,32 @@ int main(int argc, const char *argv[])
 {
     using namespace crac;
 
-    constexpr const uint8_t check_str[] = "123456789";
-    constexpr const size_t len = sizeof(check_str) - 1;
+    // crc_check_str is defined by CRaC library as compile-time
+    // constant "123456789" string w/o trailing null-terminator
+
+    constexpr const size_t len = sizeof(crc_check_str);
 
     // compile-time CRC calculation
-    static_assert(
-        CRC32::calc(check_str, len) ==
-        CRC32::check_val, "Invalid CRC32 check-val");
+    static_assert(CRC32::calc(crc_check_str, len) == CRC32::check_val);
 
     // runtime calculation: single step mode
-    auto crc = CRC32::calc(check_str, len);
+    auto crc = CRC32::calc(crc_check_str, len);
 
     // runtime calculation: block mode
     auto block_eng = CRC32::get_block_eng();
-    block_eng.update(check_str, 3);
-    block_eng.update(check_str + 3, 3);
-    block_eng.update(check_str + 6, len - 6);
+    block_eng.update(crc_check_str, 3);
+    block_eng.update(crc_check_str + 3, 3);
+    block_eng.update(crc_check_str + 6, len - 6);
     assert(crc == block_eng.final());
+
+    // Custom CRC-5 definition:
+    //   polynomial: 0x15,
+    //   direct-input,
+    //   direct-output,
+    //   initial value: 0,
+    //   output XOR value: 0.
+    using CRC5_CUSTOM = crc_algo<5, 0x15, false, false, 0, 0>;
+    static_assert(CRC5_CUSTOM::calc(crc_check_str, len) == CRC5_CUSTOM::check_val);
 
     return 0;
 }

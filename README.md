@@ -82,6 +82,8 @@ with size optimization turned on (`-Os`).
 |---------------------|--------------------|----------|
 | CRC-8 [32-lookup]   | 74(code)+32(LU)    | 32(LU)   |
 | CRC-8 [256-lookup]  | 50(code)+256(LU)   | 256(LU)  |
+| CRC-16 [32-lookup]  | 86(code)+64(LU)    | 64(LU)   |
+| CRC-16 [256-lookup] | 60(code)+512(LU)   | 512(LU)  |
 | CRC-32 [32-lookup]  | 144(code)+128(LU)  | 128(LU)  |
 | CRC-32 [256-lookup] | 92(code)+1024(LU)  | 1024(LU) |
 | CRC-64 [32-lookup]  | 198(code)+256(LU)  | 256(LU)  |
@@ -104,23 +106,32 @@ types of modes - single step mode and the block mode.
 
 using namespace crac;
 
-constexpr const uint8_t check_str[] = "123456789";
-constexpr const size_t len = sizeof(check_str) - 1;
+// crc_check_str is defined by CRaC library as compile-time
+// constant "123456789" string w/o trailing null-terminator
+
+constexpr const size_t len = sizeof(crc_check_str);
 
 // compile-time CRC calculation
-static_assert(
-    CRC32::calc(check_str, len) ==
-    CRC32::check_val, "Invalid CRC32 check-val");
+static_assert(CRC32::calc(crc_check_str, len) == CRC32::check_val);
 
 // runtime calculation: single step mode
-auto crc = CRC32::calc(check_str, len);
+auto crc = CRC32::calc(crc_check_str, len);
 
 // runtime calculation: block mode
 auto block_eng = CRC32::get_block_eng();
-block_eng.update(check_str, 3);
-block_eng.update(check_str + 3, 3);
-block_eng.update(check_str + 6, len - 6);
+block_eng.update(crc_check_str, 3);
+block_eng.update(crc_check_str + 3, 3);
+block_eng.update(crc_check_str + 6, len - 6);
 assert(crc == block_eng.final());
+
+// Custom CRC-5 definition:
+//   polynomial: 0x15,
+//   direct-input,
+//   direct-output,
+//   initial value: 0,
+//   output XOR value: 0.
+using CRC5_CUSTOM = crc_algo<5, 0x15, false, false, 0, 0>;
+static_assert(CRC5_CUSTOM::calc(crc_check_str, len) == CRC5_CUSTOM::check_val);
 ```
 
 ## Predefined CRCs
