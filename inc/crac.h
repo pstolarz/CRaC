@@ -445,7 +445,7 @@ public:
      * Calculate CRC for given input bytes - single step mode.
      */
     constexpr inline static type calc(const uint8_t *in, size_t len) {
-      return _final(base::_calc_tab(in, len, init_val));
+        return _final(base::_calc_tab(in, len, init_val));
     }
 
     // verify check-value correctness

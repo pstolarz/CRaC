@@ -52,7 +52,7 @@ CRC-32 computation timings for 1 million iterations over 256-bytes table with
 |------------|----------|----------|----------|----------|
 | CRaC       |**0.452** | 1.440    | 0.524    | 1.48     |
 | CRC++      | 0.525    | 1.170    | 0.522    | 1.08     |
-| libcrc     | 0.516    | 0.518    | 0.516    | 0.517    |
+| libcrc     | 0.514    | 0.516    | 0.516    | 0.518    |
 
 As may be seen, decent C++ compiler (clang) with basic optimization turned on
 (`-O`) produces code even more efficient than pure C library (`libcrc`).
