@@ -1,3 +1,4 @@
 *.exe
+*.disasm
 crac_example
 crac_perf

@@ -1,6 +1,6 @@
 .PHONY: all clean
 
-CXXFLAGS+=--std=c++17 -Wall -I../inc -O
+CXXFLAGS+=--std=c++17 -Wall -I../inc -g -O
 crac_example: CXXFLAGS+=-DCRAC_TEST
 
 EXES:=\
@@ -10,4 +10,7 @@ EXES:=\
 all: ${EXES}
 
 clean:
-	${RM} ${EXES}
+	${RM} ${EXES} *.disasm
+
+%.disasm: %
+	objdump --disassemble --disassembler-options=intel --source --line-numbers --demangle $< >$@
