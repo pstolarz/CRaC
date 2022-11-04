@@ -31,9 +31,9 @@ enum class crc_tab_e {
 namespace {
 
 #ifdef CRAC_TAB256
-constexpr static crc_tab_e def_tab_type = crc_tab_e::TAB256;
+constexpr inline crc_tab_e def_tab_type = crc_tab_e::TAB256;
 #else
-constexpr static crc_tab_e def_tab_type = crc_tab_e::TAB16LH;
+constexpr inline crc_tab_e def_tab_type = crc_tab_e::TAB16LH;
 #endif
 
 // CRC lookup table
@@ -136,7 +136,7 @@ private:
     typename Algo::type tab_h[16] = {};
 };
 
-constexpr static unsigned pwr2_ceil(unsigned v)
+[[maybe_unused]] constexpr inline unsigned pwr2_ceil(unsigned v)
 {
     for (unsigned p2 = 8; p2; p2 <<= 1) {
         if (v <= p2) return p2;
