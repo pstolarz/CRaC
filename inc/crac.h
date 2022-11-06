@@ -136,6 +136,7 @@ private:
     typename Algo::type tab_h[16] = {};
 };
 
+// used at compile-time stage only
 [[maybe_unused]] constexpr inline unsigned pwr2_ceil(unsigned v)
 {
     for (unsigned p2 = 8; p2; p2 <<= 1) {

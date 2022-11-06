@@ -7,7 +7,7 @@ requiring at least C++17 compliant compiler.
 
 ## Features
 
-The following features distinct the library among dozens of other CRC libraries.
+The following features distinguish the library among dozens of other CRC libraries.
 
 **Runtime fast, compile-time optimized**
 

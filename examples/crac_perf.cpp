@@ -10,9 +10,9 @@
  * See the License for more information.
  */
 
+#include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
-#include <cstdio>
 
 #define CRAC_TAB256
 #include "crac.h"

@@ -10,7 +10,7 @@
  * See the License for more information.
  */
 
-#include <cassert>
+#include <assert.h>
 
 // define to use 256-elements lookup table
 //#define CRAC_TAB256
