@@ -192,21 +192,11 @@ constexpr inline T bits_rev(T in, unsigned bits = 8 * sizeof(T))
 }
 
 /**
- * CRC algorithm (polynomial context). See @ref crc_algo for details.
- *
- * @note The template parameters uniquely define CRC algorithm lookup
- *     table, calculated at the compile time and assigned to the algorithm
- *     on the class-level (static) context.
+ * Supplementary class acting as a traits definitions base class for
+ * @c crc_algo_poly.
  */
-template<unsigned Bits, uint64_t Poly, bool ReflIn,
-    crc_tab_e TabType = def_tab_type>
-struct crc_algo_poly;
-
-/**
- * @c crc_algo_poly template in reflected-input (LSB) mode specialization.
- */
-template<unsigned Bits, uint64_t Poly, crc_tab_e TabType>
-struct crc_algo_poly<Bits, Poly, true, TabType>
+template<unsigned Bits, uint64_t Poly, bool ReflIn, crc_tab_e TabType>
+struct crc_algo_poly_traits
 {
     static_assert(Bits >= 1 && Bits <= 64, "Invalid CRC size");
 
@@ -221,9 +211,39 @@ struct crc_algo_poly<Bits, Poly, true, TabType>
     /// Polynomial associated with the CRC algorithm (reverse order)
     constexpr static type poly_rev = bits_rev(Poly, bits);
     /// The template specialization defines reflected-input algorithms
-    constexpr static bool refl_in = true;
+    constexpr static bool refl_in = ReflIn;
     /// Type of CRC lookup table used
     constexpr static crc_tab_e tab_type = TabType;
+};
+
+/**
+ * CRC algorithm (polynomial context). See @ref crc_algo for details.
+ *
+ * @note The template parameters uniquely define CRC algorithm lookup
+ *     table, calculated at the compile time and assigned to the algorithm
+ *     on the class-level (static) context.
+ */
+template<unsigned Bits, uint64_t Poly, bool ReflIn, crc_tab_e TabType>
+struct crc_algo_poly;
+
+/**
+ * @c crc_algo_poly template in reflected-input (LSB) mode specialization.
+ */
+template<unsigned Bits, uint64_t Poly, crc_tab_e TabType>
+struct crc_algo_poly<Bits, Poly, true, TabType>:
+    crc_algo_poly_traits<Bits, Poly, true, TabType>
+{
+private:
+    using base = crc_algo_poly_traits<Bits, Poly, true, TabType>;
+
+public:
+    using base::bits;
+    using base::mask;
+    using base::poly;
+    using base::poly_rev;
+    using base::refl_in;
+    using base::tab_type;
+    using typename base::type;
 
     /**
      * Calculate CRC for given input bytes - slow version (direct calculation
@@ -290,24 +310,20 @@ struct crc_algo_poly<Bits, Poly, true, TabType>
  * @c crc_algo_poly in direct-input (MSB) mode specialization.
  */
 template<unsigned Bits, uint64_t Poly, crc_tab_e TabType>
-struct crc_algo_poly<Bits, Poly, false, TabType>
+struct crc_algo_poly<Bits, Poly, false, TabType>:
+    crc_algo_poly_traits<Bits, Poly, false, TabType>
 {
-    static_assert(Bits >= 1 && Bits <= 64, "Invalid CRC size");
+private:
+    using base = crc_algo_poly_traits<Bits, Poly, false, TabType>;
 
-    /// CRC algorithm bits size specification
-    constexpr static unsigned bits = Bits;
-    /// CRC result type
-    using type = pwr2_t<pwr2_ceil(bits)>;
-    /// CRC value mask
-    constexpr static type mask = ((((type)1 << (bits - 1)) - 1) << 1) | 1;
-    /// Polynomial associated with the CRC algorithm
-    constexpr static type poly = Poly;
-    /// Polynomial associated with the CRC algorithm (reverse order)
-    constexpr static type poly_rev = bits_rev(Poly, bits);
-    /// The template specialization defines direct-input algorithms
-    constexpr static bool refl_in = false;
-    /// Type of CRC lookup table used
-    constexpr static crc_tab_e tab_type = TabType;
+public:
+    using base::bits;
+    using base::mask;
+    using base::poly;
+    using base::poly_rev;
+    using base::refl_in;
+    using base::tab_type;
+    using typename base::type;
 
     /**
      * See @c _calc() for reflected-input mode specialization.
@@ -407,10 +423,12 @@ private:
     using base = crc_algo_poly<Bits, Poly, ReflIn, TabType>;
 
 public:
-    // avoid base class classifier
     using base::bits;
     using base::mask;
+    using base::poly;
+    using base::poly_rev;
     using base::refl_in;
+    using base::tab_type;
     using typename base::type;
 
     /// CRC in reflected-output mode (@c true), direct-output (@ false)
