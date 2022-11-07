@@ -407,11 +407,11 @@ private:
     using base = crc_algo_poly<Bits, Poly, ReflIn, TabType>;
 
 public:
-    // aliases to base class members
-    constexpr static auto bits  = base::bits;
-    constexpr static auto mask  = base::mask;
-    constexpr static auto refl_in  = base::refl_in;
-    using type = typename base::type;
+    // avoid base class classifier
+    using base::bits;
+    using base::mask;
+    using base::refl_in;
+    using typename base::type;
 
     /// CRC in reflected-output mode (@c true), direct-output (@ false)
     constexpr static bool refl_out = ReflOut;
