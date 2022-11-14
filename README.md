@@ -109,7 +109,7 @@ using namespace crac;
 // crc_check_str is defined by CRaC library as compile-time
 // constant "123456789" string w/o trailing null-terminator
 
-constexpr const size_t len = sizeof(crc_check_str);
+constexpr size_t len = sizeof(crc_check_str);
 
 // compile-time CRC calculation
 static_assert(CRC32::calc(crc_check_str, len) == CRC32::check_val);
