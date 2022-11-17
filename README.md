@@ -11,10 +11,10 @@ The following features distinguish the library among dozens of other CRC librari
 
 **Runtime fast, compile-time optimized**
 
-Lookup tables generation and all conditional branches are defined and checked
-at the compile time by a compiler, emitting the runtime output in reduced
-form, optimized for a particular CRC algorithm. Moreover, if an input for
-a calculated CRC checksum is known at the compile time, the library may
+Lookup tables (LUT) generation and all conditional branches are defined and
+checked at the compile time by a compiler, emitting the runtime output in
+reduced form, optimized for a particular CRC algorithm. Moreover, if an input
+for a calculated CRC checksum is known at the compile time, the library may
 calculate it purely at the compilation stage with no footprint emitted to the
 runtime output. As an example - the library unit tests are performed entirely
 at the compile-time level by [`crac_test.h`](inc/crac_test.h) header, and may
@@ -57,16 +57,16 @@ CRC-32 computation timings for 1 million iterations over 256-bytes table with
 As may be seen, decent C++ compiler (clang) with basic optimization turned on
 (`-O`) produces code even more efficient than pure C library (`libcrc`).
 
-**256 vs 32-elements lookups**
+**256 vs 32-elements lookup table**
 
 By default CRaC works with 32-elements lookup tables, which produce lower
 footprint size with some performance loss as presented in the following table
 (the same test conditions as previously; values in ms):
 
-|            | clang -O | clang    | gcc -O   | gcc      |
-|------------|----------|----------|----------|----------|
-| 256-lookup | 0.452    | 1.440    | 0.524    | 1.48     |
-| 32-lookup  | 0.676    | 1.685    | 0.687    | 1.67     |
+|         | clang -O | clang    | gcc -O   | gcc      |
+|---------|----------|----------|----------|----------|
+| 256-LUT | 0.452    | 1.440    | 0.524    | 1.48     |
+| 32-LUT  | 0.676    | 1.685    | 0.687    | 1.67     |
 
 As a conclusion, unoptimized compilation introduces performance loss an order
 of magnitude larger than 32-elements lookup tables usage.
@@ -78,16 +78,16 @@ important factor in the embedded systems area. The following table presents
 various CRC types usage, compiled for AVR 8-bit platform (gcc-avr toolchain)
 with size optimization turned on (`-Os`).
 
-|                     | FLASH [B]          | RAM [B]  |
-|---------------------|--------------------|----------|
-| CRC-8 [32-lookup]   | 74(code)+32(LU)    | 32(LU)   |
-| CRC-8 [256-lookup]  | 50(code)+256(LU)   | 256(LU)  |
-| CRC-16 [32-lookup]  | 86(code)+64(LU)    | 64(LU)   |
-| CRC-16 [256-lookup] | 60(code)+512(LU)   | 512(LU)  |
-| CRC-32 [32-lookup]  | 144(code)+128(LU)  | 128(LU)  |
-| CRC-32 [256-lookup] | 92(code)+1024(LU)  | 1024(LU) |
-| CRC-64 [32-lookup]  | 198(code)+256(LU)  | 256(LU)  |
-| CRC-64 [256-lookup] | 108(code)+2048(LU) | 2048(LU) |
+|                  | FLASH [B]           | RAM [B]   |
+|------------------|---------------------|-----------|
+| CRC-8 (32-LUT)   | 74(code)+32(LUT)    | 32(LUT)   |
+| CRC-8 (256-LUT)  | 50(code)+256(LUT)   | 256(LUT)  |
+| CRC-16 (32-LUT)  | 86(code)+64(LUT)    | 64(LUT)   |
+| CRC-16 (256-LUT) | 60(code)+512(LUT)   | 512(LUT)  |
+| CRC-32 (32-LUT)  | 144(code)+128(LUT)  | 128(LUT)  |
+| CRC-32 (256-LUT) | 92(code)+1024(LUT)  | 1024(LUT) |
+| CRC-64 (32-LUT)  | 198(code)+256(LUT)  | 256(LUT)  |
+| CRC-64 (256-LUT) | 108(code)+2048(LUT) | 2048(LUT) |
 
 
 ## Usage
