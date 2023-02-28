@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Piotr Stolarz
+ * Copyright (c) 2022,2023 Piotr Stolarz
  * CRaC: C++17 Cyclic Redundancy Check (CRC) template library.
  *
  * Distributed under the 2-clause BSD License (the License)
@@ -216,6 +216,15 @@ struct crc_algo_poly_traits
     constexpr static crc_tab_e tab_type = TabType;
 };
 
+#define __USING_ALGO_POLY_TRAITS(__base) \
+    using __base::bits; \
+    using __base::mask; \
+    using __base::poly; \
+    using __base::poly_rev; \
+    using __base::refl_in; \
+    using __base::tab_type; \
+    using typename __base::type
+
 /**
  * CRC algorithm (polynomial context). See @ref crc_algo for details.
  *
@@ -237,13 +246,7 @@ private:
     using base = crc_algo_poly_traits<Bits, Poly, true, TabType>;
 
 public:
-    using base::bits;
-    using base::mask;
-    using base::poly;
-    using base::poly_rev;
-    using base::refl_in;
-    using base::tab_type;
-    using typename base::type;
+    __USING_ALGO_POLY_TRAITS(base);
 
     /**
      * Calculate CRC for given input bytes - slow version (direct calculation
@@ -317,13 +320,7 @@ private:
     using base = crc_algo_poly_traits<Bits, Poly, false, TabType>;
 
 public:
-    using base::bits;
-    using base::mask;
-    using base::poly;
-    using base::poly_rev;
-    using base::refl_in;
-    using base::tab_type;
-    using typename base::type;
+    __USING_ALGO_POLY_TRAITS(base);
 
     /**
      * See @c _calc() for reflected-input mode specialization.
@@ -423,13 +420,7 @@ private:
     using base = crc_algo_poly<Bits, Poly, ReflIn, TabType>;
 
 public:
-    using base::bits;
-    using base::mask;
-    using base::poly;
-    using base::poly_rev;
-    using base::refl_in;
-    using base::tab_type;
-    using typename base::type;
+    __USING_ALGO_POLY_TRAITS(base);
 
     /// CRC in reflected-output mode (@c true), direct-output (@ false)
     constexpr static bool refl_out = ReflOut;
@@ -515,6 +506,8 @@ public:
         return block_eng{};
     }
 };
+
+#undef __USING_ALGO_POLY_TRAITS
 
 /*
  * Predefined CRC algorithms
