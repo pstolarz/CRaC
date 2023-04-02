@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Piotr Stolarz
+ * Copyright (c) 2022,2023 Piotr Stolarz
  * CRaC: C++17 Cyclic Redundancy Check (CRC) template library.
  *
  * Distributed under the 2-clause BSD License (the License)
@@ -301,6 +301,7 @@ static_assert(test_crc_v<CRC32_BZIP2>);
 static_assert(test_crc_v<CRC32_JAMCRC>);
 static_assert(test_crc_v<CRC32_MPEG2>);
 static_assert(test_crc_v<CRC32_POSIX>);
+static_assert(test_crc_v<CRC32_PRIME>);
 static_assert(test_crc_v<CRC32_C>);
 // static_assert(test_crc_v<CRC32_K2>);
 static_assert(test_crc_v<CRC32_MEF>);
