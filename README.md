@@ -240,10 +240,10 @@ The library provides the following set of predefined CRCs:
 | CRC32_XFER             | 0x000000af         | N      | N       | 0        | 0        | 0xbd0be338         |
 | CRC32                  | 0x04c11db7         | Y      | Y       | ~0       | ~0       | 0xcbf43926         |
 | CRC32_BZIP2            | 0x04c11db7         | N      | N       | ~0       | ~0       | 0xfc891918         |
+| CRC32_EDC              | 0x04c11db7         | N      | N       | 0        | 0        | 0x89a1897f         |
 | CRC32_JAMCRC           | 0x04c11db7         | Y      | Y       | ~0       | 0        | 0x340bc6d9         |
 | CRC32_MPEG2            | 0x04c11db7         | N      | N       | ~0       | 0        | 0x0376e6e7         |
 | CRC32_POSIX            | 0x04c11db7         | N      | N       | 0        | ~0       | 0x765e7680         |
-| CRC32_PRIME            | 0x04c11db7         | N      | N       | 0        | 0        | 0x89a1897f         |
 | CRC32_C                | 0x1edc6f41         | Y      | Y       | ~0       | ~0       | 0xe3069283         |
 | CRC32_MEF              | 0x741b8cd7         | Y      | Y       | ~0       | 0        | 0xd2c22f51         |
 | CRC32_CDROM_EDC        | 0x8001801b         | Y      | Y       | 0        | 0        | 0x6ec2edc4         |
