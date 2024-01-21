@@ -1,7 +1,7 @@
 # CRaC: C++17 CRC template library
 
-CRaC is C++ single-header template library aiming for fast calculation and
-limited runtime footprint needs (especially embedded systems case). The library
+CRaC is C++ single-header template library aiming for fast CRC calculation with
+limited runtime footprint size (especially embedded systems case). The library
 extensively exploits compile-time oriented features of the C++ language
 requiring at least C++17 compliant compiler.
 
@@ -15,20 +15,20 @@ Lookup tables (LUT) generation and all conditional branches are defined and
 checked at the compile time by a compiler, emitting the runtime output in
 reduced form, optimized for a particular CRC algorithm. Moreover, if an input
 for a calculated CRC checksum is known at the compile time, the library may
-calculate it purely at the compilation stage with no footprint emitted to the
-runtime output. As an example - the library unit tests are performed entirely
-at the compile-time level by [`crac_test.h`](inc/crac_test.h) header, and may
-be activated by defining `CRAC_TEST`.
+calculate it purely at the compilation stage with no code emitted to the runtime.
+As an example - the library unit tests are performed entirely at the compile-time
+level by [`crac_test.h`](inc/crac_test.h) header, and may be activated by
+defining `CRAC_TEST`.
 
 **Limited runtime footprint**
 
 The library exploits special type of reduced size lookup table to decrease
-runtime footprint size. Most CRC libraries out there, which use lookup tables
-to increase CRC computation speed, base on a single 256-elements table to
-calculate single-byte CRC checksum. Such approach may by a blocker for tiny
-embedded platforms, where 1kB CRC-32 lookup table is simply too large. CRaC
-incorporates two 16-elements lookup tables, drastically reducing the footprint,
-without significant performance penalty (see below for details).
+runtime footprint size. Most CRC libraries out there, which use lookup tables to
+increase CRC computation speed, base on a single 256-elements table to calculate
+single-byte CRC checksum. Such approach may by a blocker for tiny embedded
+platforms, where 1kB CRC-32 lookup table is too large. CRaC incorporates two
+16-elements lookup tables, drastically reducing the footprint, without
+significant performance penalty (see below for details).
 
 NOTE: Single 256-elements lookup table is still possible to use by defining
 `CRAC_TAB256`.
