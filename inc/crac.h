@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022,2023 Piotr Stolarz
+ * Copyright (c) 2022-2024 Piotr Stolarz
  * CRaC: C++17 Cyclic Redundancy Check (CRC) template library.
  *
  * Distributed under the 2-clause BSD License (the License)
@@ -49,7 +49,7 @@ struct crc_tab<Algo, true, crc_tab_e::TAB256>
     {
         uint8_t i = 0;
         do {
-            tab[i] = Algo::_calc(&i, 1, 0);
+            tab[i] = Algo::_calc_byte(i, 8, 0);
         } while (++i);
     }
 
@@ -69,7 +69,7 @@ struct crc_tab<Algo, false, crc_tab_e::TAB256>
     {
         uint8_t i = 0;
         do {
-            tab[i] = Algo::_calc(&i, 1, 0);
+            tab[i] = Algo::_calc_byte(i, 8, 0);
             if constexpr (Algo::bits < 8) {
                 tab[i] <<= (8 - Algo::bits);
             }
@@ -91,10 +91,10 @@ struct crc_tab<Algo, true, crc_tab_e::TAB16LH>
     constexpr crc_tab()
     {
         for (uint8_t i = 0; i < 16; i++) {
-            tab_l[i] = Algo::_calc(&i, 1, 0);
+            tab_l[i] = Algo::_calc_byte(i, 8, 0);
 
             uint8_t ih = i << 4;
-            tab_h[i] = Algo::_calc(&ih, 1, 0);
+            tab_h[i] = Algo::_calc_byte(ih, 8, 0);
         }
     }
 
@@ -114,13 +114,13 @@ struct crc_tab<Algo, false, crc_tab_e::TAB16LH>
     constexpr crc_tab()
     {
         for (uint8_t i = 0; i < 16; i++) {
-            tab_l[i] = Algo::_calc(&i, 1, 0);
+            tab_l[i] = Algo::_calc_byte(i, 8, 0);
             if constexpr (Algo::bits < 8) {
                 tab_l[i] <<= (8 - Algo::bits);
             }
 
             uint8_t ih = i << 4;
-            tab_h[i] = Algo::_calc(&ih, 1, 0);
+            tab_h[i] = Algo::_calc_byte(ih, 8, 0);
             if constexpr (Algo::bits < 8) {
                 tab_h[i] <<= (8 - Algo::bits);
             }
@@ -175,7 +175,7 @@ constexpr inline uint8_t crc_check_str[] =
 
 /// Bits reversal (helper, utility routine).
 template<typename T>
-constexpr inline T bits_rev(T in, unsigned bits = 8 * sizeof(T))
+constexpr inline T bits_rev(T in, unsigned n_bits = 8 * sizeof(T))
 {
     constexpr uint8_t rev16_tab[] = {
         0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe,
@@ -184,11 +184,11 @@ constexpr inline T bits_rev(T in, unsigned bits = 8 * sizeof(T))
 
     _make_unsigned_t<T> out = 0;
 
-    for (; bits > 4; bits -= 4) {
+    for (; n_bits > 4; n_bits -= 4) {
         out |= rev16_tab[in & 0xf];
         in >>= 4; out <<= 4;
     }
-    return (out | rev16_tab[in & 0xf]) >> (4 - bits);
+    return (out | rev16_tab[in & 0xf]) >> (4 - n_bits);
 }
 
 /**
@@ -249,22 +249,19 @@ public:
     __USING_ALGO_POLY_TRAITS(base);
 
     /**
-     * Calculate CRC for given input bytes - slow version (direct calculation
-     * basing on mathematical definition).
+     * Calculate CRC for a byte (or its part) - slow version
+     * (direct calculation basing on mathematical definition).
      *
-     * @note Don't use this version unless for *very specific* use cases.
-     *    The routine is used at the compile time to generate internal lookup
-     *    table.
+     * @note This is internal routine which is is not part of the library
+     *     public interface. See @ref crc_algo::calc_bits(), block_eng::update_bits().
      */
-    constexpr static type _calc(const uint8_t *in, size_t len, type crc_in)
+    constexpr static type _calc_byte(const uint8_t in, unsigned n_bits, type crc_in)
     {
         type crc = crc_in;
 
-        while (len--) {
-            crc ^= *in++;
-            for (int i = 8; i; i--) {
-                crc = (crc & 1 ? poly_rev : 0) ^ (crc >> 1);
-            }
+        crc ^= in & (((type)1 << n_bits) - 1);
+        while (n_bits--) {
+            crc = (crc & 1 ? poly_rev : 0) ^ (crc >> 1);
         }
         return crc;
     }
@@ -286,11 +283,11 @@ public:
     constexpr static crc_tab<crc_algo_poly> lookup{};
 
     /**
-     * Calculate CRC for given input bytes - fast version (basing on the
+     * Calculate CRC for table of bytes - fast version (basing on the
      * CRC lookup table).
      *
-     * @note This is "plumbing" routine. See @ref crc_algo::calc()
-     *     for more usable variant.
+     * @note This is internal routine which is is not part of the library
+     *     public interface. See @ref crc_algo::calc(), block_eng::update().
      */
     constexpr inline static type _calc_tab(
         const uint8_t *in, size_t len, type crc_in)
@@ -322,40 +319,32 @@ private:
 public:
     __USING_ALGO_POLY_TRAITS(base);
 
-    /**
-     * See @c _calc() for reflected-input mode specialization.
-     *
-     * @note Don't use this version unless for *very specific* use cases.
-     *    The routine is used at the compile time to generate internal lookup
-     *    table.
-     */
-    constexpr static type _calc(const uint8_t *in, size_t len, type crc_in)
+    /// See @c _calc_byte() for reflected-input mode specialization.
+    constexpr static type _calc_byte(const uint8_t in, unsigned n_bits, type crc_in)
     {
         type crc = crc_in;
-        if constexpr (bits < 8) {
-            crc <<= (8 - bits);
-        }
 
-        while (len--) {
-            if constexpr (bits <= 8) {
-                crc ^= *in++;
-            } else {
-                crc ^= (type)*in++ << (bits - 8);
-            }
-            for (int i = 8; i; i--) {
-                if constexpr (bits < 8) {
-                    crc = (crc & 0x80 ? poly << (8 - bits) : 0) ^ (crc << 1);
-                } else {
-                    crc = (crc & ((type)1 << (bits - 1)) ?  poly : 0) ^ (crc << 1);
-                }
-            }
-        }
+        if (n_bits > bits) {
+            const type msb = (type)1 << (n_bits - 1);
+            const unsigned n_diff = n_bits - bits;
+            const type poly_shl = poly << n_diff;
 
-        if constexpr (bits < 8) {
-            return crc >> (8 - bits);
+            crc = (type)in ^ (crc << n_diff);
+            while (n_bits--) {
+                crc = (crc & msb ? poly_shl : 0) ^ (crc << 1);
+            }
+            crc >>= n_diff;
         } else {
-            return crc & mask;
+            const type msb = (type)1 << (bits - 1);
+            const unsigned n_diff = bits - n_bits;
+
+            crc = ((type)in << n_diff) ^ crc;
+            while (n_bits--) {
+                crc = (crc & msb ? poly : 0) ^ (crc << 1);
+            }
         }
+
+        return crc & mask;
     }
 
     // generate lookup table at the compile time
@@ -431,10 +420,10 @@ public:
     constexpr static type xor_out = (XorOut & mask);
 
     /**
-     * Calculate final CRC value for a given @c crc.
+     * Calculate final CRC value for a preliminary @c crc.
      *
-     * @note This is "plumbing" routine. See @ref crc_algo::block_eng::final()
-     *     and @ref crc_algo::calc() for more usable variants.
+     * @note This is internal routine which is is not part of the library
+     *     public interface. See @ref block_eng::final().
      */
     constexpr inline static type _final(type crc)
     {
@@ -452,10 +441,59 @@ public:
     }
 
     /**
-     * Calculate CRC for given input bytes - single step mode.
+     * Calculate CRC for table of bytes - single step mode.
      */
     constexpr inline static type calc(const uint8_t *in, size_t len) {
         return _final(base::_calc_tab(in, len, init_val));
+    }
+
+    /**
+     * Base routine for CRC calculation of a given set of bits read from
+     * an arbitrary integer value.
+     *
+     * @note This is internal routine which is is not part of the library
+     *     public interface. See @ref calc_bits() , @ref block_eng::update_bits().
+     */
+    template<typename T>
+    constexpr static type _calc_bits(T in, unsigned n_bits, type crc_in)
+    {
+        type crc = crc_in;
+        unsigned n_bytes = n_bits >> 3;
+        const unsigned r_bits = n_bits & 7;
+
+        if constexpr (refl_in) {
+            while (n_bytes--) {
+                uint8_t b = (uint8_t)in;
+                crc = base::_calc_tab(&b, 1, crc);
+                in >>= 8;
+            }
+            if (r_bits) {
+                crc = base::_calc_byte((uint8_t)in, r_bits, crc);
+            }
+        } else {
+            if (r_bits) {
+                n_bits -= r_bits;
+                crc = base::_calc_byte((uint8_t)(in >> n_bits), r_bits, crc);
+            }
+            while (n_bytes--) {
+                n_bits -= 8;
+                uint8_t b = (uint8_t)(in >> n_bits);
+                crc = base::_calc_tab(&b, 1, crc);
+            }
+        }
+
+        return crc;
+    }
+
+    /**
+     * Calculate CRC for @c n_bits bits (starting from LSB) - single step mode.
+     *
+     * @note @c in may be a value of an arbitrary integer type.
+     */
+    template<typename T>
+    constexpr inline static type calc_bits(T in, unsigned n_bits)
+    {
+        return _final(_calc_bits(in, n_bits, init_val));
     }
 
     // verify check-value correctness
@@ -476,13 +514,27 @@ public:
         block_eng() = default;
 
         /**
-         * Calculate CRC for given input bytes.
+         * Update CRC for table of bytes.
          *
          * Calculation engine collects passed input blocks for processing CRC
          * until @ref final() method call.
          */
         inline void update(const uint8_t *in, size_t len) {
             crc = base::_calc_tab(in, len, crc);
+        }
+
+        /**
+         * Update CRC for @c n_bits bits (starting from LSB).
+         *
+         * @note @c in may be a value of an arbitrary integer type.
+         *
+         * Calculation engine collects passed input blocks for processing CRC
+         * until @ref final() method call.
+         */
+        template<typename T>
+        inline void update_bits(T in, unsigned n_bits)
+        {
+            crc = _calc_bits(in, n_bits, crc);
         }
 
         /**

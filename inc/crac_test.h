@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022,2023 Piotr Stolarz
+ * Copyright (c) 2022-2024 Piotr Stolarz
  * CRaC: C++17 Cyclic Redundancy Check (CRC) template library.
  *
  * Distributed under the 2-clause BSD License (the License)
@@ -183,7 +183,7 @@ struct test_crc
     constexpr static bool do_test()
     {
         return (Algo::check_val == Algo::_final(
-            Algo::_calc(crc_check_str, sizeof(crc_check_str), Algo::init_val)));
+            Algo::_calc_tab(crc_check_str, sizeof(crc_check_str), Algo::init_val)));
     }
 
     constexpr static bool value = do_test();

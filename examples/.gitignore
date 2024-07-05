@@ -1,4 +1,5 @@
 *.disasm
 *.exe
+crac_calcbits
 crac_example
 crac_perf
