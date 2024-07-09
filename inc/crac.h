@@ -146,12 +146,25 @@ private:
     return 0;
 }
 
+#if defined(__GNUC__) && defined(CRAC_EXTINT)
+# define __USE_EXTINT
+#endif
+
+#ifdef __USE_EXTINT
+using uint_max_t = __uint128_t;
+#else
+using uint_max_t = uint64_t;
+#endif
+
 // CRC type detector template
 template<unsigned U> struct pwr2;
 template<> struct pwr2<8> { using type = uint8_t; };
 template<> struct pwr2<16> { using type = uint16_t; };
 template<> struct pwr2<32> { using type = uint32_t; };
 template<> struct pwr2<64> { using type = uint64_t; };
+#ifdef __USE_EXTINT
+template<> struct pwr2<128> { using type = __uint128_t; };
+#endif
 template<unsigned U> using pwr2_t = typename pwr2<U>::type;
 
 // std::make_unsigned counterpart
@@ -166,9 +179,42 @@ template<> struct _make_unsigned<long> { using type = unsigned long; };
 template<> struct _make_unsigned<unsigned long> { using type = unsigned long; };
 template<> struct _make_unsigned<long long> { using type = unsigned long long; };
 template<> struct _make_unsigned<unsigned long long> { using type = unsigned long long; };
+#ifdef __USE_EXTINT
+template<> struct _make_unsigned<__int128_t> { using type = __uint128_t; };
+template<> struct _make_unsigned<__uint128_t> { using type = __uint128_t; };
+#endif
 template<typename T> using _make_unsigned_t = typename _make_unsigned<T>::type;
 
 } // unnamed namespace
+
+#ifdef __USE_EXTINT
+constexpr __uint128_t operator""_u128(const char* x)
+{
+    __uint128_t y = 0;
+    unsigned i = 0, base = 10;
+
+    if (x[0] == '0' && (x[1] == 'x' || x[1] == 'X')) {
+        i = 2;
+        base = 16;
+    } else if (x[0] == '0' ) {
+        i = 1;
+        base = 8;
+    }
+
+    for (; x[i] != 0; i++)
+    {
+        y *= base;
+        if ('0' <= x[i] && x[i] <= '9') {
+            y += x[i] - '0';
+        } else if (base == 16 && 'A' <= x[i] && x[i] <= 'F') {
+            y += x[i] - 'A' + 10;
+        } else if (base == 16 && 'a' <= x[i] && x[i] <= 'f') {
+            y += x[i] - 'a' + 10;
+        }
+    }
+    return y;
+}
+#endif
 
 constexpr inline uint8_t crc_check_str[] =
     {'1', '2', '3', '4', '5', '6', '7', '8', '9'};
@@ -195,10 +241,10 @@ constexpr inline T bits_rev(T in, unsigned n_bits = 8 * sizeof(T))
  * Supplementary class acting as a traits definitions base class for
  * @c crc_algo_poly.
  */
-template<unsigned Bits, uint64_t Poly, bool ReflIn, crc_tab_e TabType>
+template<unsigned Bits, uint_max_t Poly, bool ReflIn, crc_tab_e TabType>
 struct crc_algo_poly_traits
 {
-    static_assert(Bits >= 1 && Bits <= 64, "Invalid CRC size");
+    static_assert(Bits >= 1 && Bits <= 8 * sizeof(uint_max_t), "Invalid CRC size");
 
     /// CRC algorithm bits size specification
     constexpr static unsigned bits = Bits;
@@ -232,13 +278,13 @@ struct crc_algo_poly_traits
  *     table, calculated at the compile time and assigned to the algorithm
  *     on the class-level (static) context.
  */
-template<unsigned Bits, uint64_t Poly, bool ReflIn, crc_tab_e TabType>
+template<unsigned Bits, uint_max_t Poly, bool ReflIn, crc_tab_e TabType>
 struct crc_algo_poly;
 
 /**
  * @c crc_algo_poly template in reflected-input (LSB) mode specialization.
  */
-template<unsigned Bits, uint64_t Poly, crc_tab_e TabType>
+template<unsigned Bits, uint_max_t Poly, crc_tab_e TabType>
 struct crc_algo_poly<Bits, Poly, true, TabType>:
     crc_algo_poly_traits<Bits, Poly, true, TabType>
 {
@@ -309,7 +355,7 @@ public:
 /**
  * @c crc_algo_poly in direct-input (MSB) mode specialization.
  */
-template<unsigned Bits, uint64_t Poly, crc_tab_e TabType>
+template<unsigned Bits, uint_max_t Poly, crc_tab_e TabType>
 struct crc_algo_poly<Bits, Poly, false, TabType>:
     crc_algo_poly_traits<Bits, Poly, false, TabType>
 {
@@ -403,8 +449,8 @@ public:
  * @param TabType Type of CRC lookup table.
  */
 template<
-    unsigned Bits, uint64_t Poly, bool ReflIn, bool ReflOut,
-    uint64_t InitVal, uint64_t XorOut, uint64_t CheckVal = ~(uint64_t)0,
+    unsigned Bits, uint_max_t Poly, bool ReflIn, bool ReflOut,
+    uint_max_t InitVal, uint_max_t XorOut, uint_max_t CheckVal = ~(uint_max_t)0,
     crc_tab_e TabType = def_tab_type>
 struct crc_algo: crc_algo_poly<Bits, Poly, ReflIn, TabType>
 {
@@ -499,12 +545,12 @@ public:
     }
 
     // verify check-value correctness
-    static_assert(CheckVal == ~(uint64_t)0 ||
+    static_assert(CheckVal == ~(uint_max_t)0 ||
         CheckVal == calc(crc_check_str, sizeof(crc_check_str)),
         "CRC check-value doesn't match");
 
     /// CRC check-value
-    constexpr static type check_val = (CheckVal == ~(uint64_t)0 ?
+    constexpr static type check_val = (CheckVal == ~(uint_max_t)0 ?
         calc(crc_check_str, sizeof(crc_check_str)) : CheckVal);
 
     /**
@@ -751,10 +797,15 @@ using CRC64_WE = crc_algo<64, 0x42f0e1eba9ea3693, false, false, 0xffffffffffffff
 using CRC64_XZ = crc_algo<64, 0x42f0e1eba9ea3693, true, true, 0xffffffffffffffff, 0xffffffffffffffff, 0x995dc9bbdf1939fa>;
 using CRC64_GO_ECMA = CRC64_XZ;
 using CRC64_REDIS = crc_algo<64, 0xad93d23594c935a9, true, true, 0, 0, 0xe9c6d914c4b8d9ca>;
+#ifdef __USE_EXTINT
+using CRC82_DARC = crc_algo<82, 0x0308c0111011401440411_u128, true, true, 0, 0, 0x09ea83f625023801fd612_u128>;
+#endif
 
 #ifdef CRAC_TEST
 # include "crac_test.h"
 #endif
+
+#undef __USE_EXTINT
 
 } // crac namespace
 #endif /* __CRAC_H__ */

@@ -1,7 +1,7 @@
 .PHONY: all clean
 
 CXXFLAGS+=--std=c++17 -Wall -I../inc -g -O
-crac_example: CXXFLAGS+=-DCRAC_TEST
+crac_example: CXXFLAGS+=-DCRAC_TEST -DCRAC_EXTINT
 crac_perf: CXXFLAGS+=-DCRAC_TAB256
 
 EXES:=\

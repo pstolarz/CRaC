@@ -46,6 +46,9 @@ static_assert(_is_same_v<CRC31_PHILIPS::type, uint32_t>);
 static_assert(_is_same_v<CRC32_XFER::type, uint32_t>);
 static_assert(_is_same_v<CRC40_GSM::type, uint64_t>);
 static_assert(_is_same_v<CRC64_GO_ISO::type, uint64_t>);
+#ifdef __USE_EXTINT
+static_assert(_is_same_v<CRC82_DARC::type, __uint128_t>);
+#endif
 
 //
 // Reverse polynomials test
@@ -127,6 +130,9 @@ static_assert(CRC64_GO_ISO::poly_rev == 0xd800000000000000);
 static_assert(CRC64_MS::poly_rev == 0x92c64265d32139a4);
 static_assert(CRC64::poly_rev == 0xc96c5795d7870f42);
 static_assert(CRC64_REDIS::poly_rev == 0x95ac9329ac4bc9b5);
+#ifdef __USE_EXTINT
+static_assert(CRC82_DARC::poly_rev == 0x220808a00a2022200c430_u128);
+#endif
 
 // runtime objects size tester
 template<typename Crc>
@@ -138,7 +144,7 @@ struct test_rt_sizes
             return false;
 
         if constexpr (Crc::tab_type == crc_tab_e::TAB256) {
-            return (sizeof(Crc::lookup) == 256 *sizeof(typename Crc::type));
+            return (sizeof(Crc::lookup) == 256 * sizeof(typename Crc::type));
         } else {
             return (sizeof(Crc::lookup) == 32 * sizeof(typename Crc::type));
         }
@@ -175,6 +181,9 @@ static_assert(test_rt_sizes_v<CRC31_PHILIPS>);
 static_assert(test_rt_sizes_v<CRC32_XFER>);
 static_assert(test_rt_sizes_v<CRC40_GSM>);
 static_assert(test_rt_sizes_v<CRC64_GO_ISO>);
+#ifdef __USE_EXTINT
+static_assert(test_rt_sizes_v<CRC82_DARC>);
+#endif
 
 // CRC validation tester
 template<typename Crc>
@@ -316,6 +325,9 @@ static_assert(test_crc_v<CRC64>);
 static_assert(test_crc_v<CRC64_WE>);
 static_assert(test_crc_v<CRC64_XZ>);
 static_assert(test_crc_v<CRC64_REDIS>);
+#ifdef __USE_EXTINT
+static_assert(test_crc_v<CRC82_DARC>);
+#endif
 
 // non-standard CRC w/o check-value provided
 static_assert(test_crc_v<crc_algo<5, 0x15, false, false, 0, 0>>);
