@@ -2,6 +2,7 @@
 
 CXXFLAGS+=--std=c++17 -Wall -I../inc -g -O
 crac_example: CXXFLAGS+=-DCRAC_TEST
+crac_perf: CXXFLAGS+=-DCRAC_TAB256
 
 EXES:=\
     crac_calcbits \

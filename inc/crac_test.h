@@ -129,26 +129,26 @@ static_assert(CRC64::poly_rev == 0xc96c5795d7870f42);
 static_assert(CRC64_REDIS::poly_rev == 0x95ac9329ac4bc9b5);
 
 // runtime objects size tester
-template<typename Algo>
+template<typename Crc>
 struct test_rt_sizes
 {
     constexpr static bool do_test()
     {
-        if (sizeof(typename Algo::block_eng) != sizeof(typename Algo::type))
+        if (sizeof(typename Crc::block_eng) != sizeof(typename Crc::type))
             return false;
 
-        if constexpr (Algo::tab_type == crc_tab_e::TAB256) {
-            return (sizeof(Algo::lookup) == 256 *sizeof(typename Algo::type));
+        if constexpr (Crc::tab_type == crc_tab_e::TAB256) {
+            return (sizeof(Crc::lookup) == 256 *sizeof(typename Crc::type));
         } else {
-            return (sizeof(Algo::lookup) == 32 * sizeof(typename Algo::type));
+            return (sizeof(Crc::lookup) == 32 * sizeof(typename Crc::type));
         }
     }
 
     constexpr static bool value = do_test();
 };
 
-template<typename Algo>
-constexpr static bool test_rt_sizes_v = test_rt_sizes<Algo>::value;
+template<typename Crc>
+constexpr static bool test_rt_sizes_v = test_rt_sizes<Crc>::value;
 
 //
 // Runtime objects size test
@@ -177,20 +177,20 @@ static_assert(test_rt_sizes_v<CRC40_GSM>);
 static_assert(test_rt_sizes_v<CRC64_GO_ISO>);
 
 // CRC validation tester
-template<typename Algo>
+template<typename Crc>
 struct test_crc
 {
     constexpr static bool do_test()
     {
-        return (Algo::check_val == Algo::_final(
-            Algo::_calc_tab(crc_check_str, sizeof(crc_check_str), Algo::init_val)));
+        return (Crc::check_val == Crc::_final(
+            Crc::_calc_tab(crc_check_str, sizeof(crc_check_str), Crc::init_val)));
     }
 
     constexpr static bool value = do_test();
 };
 
-template<typename Algo>
-constexpr static bool test_crc_v = test_crc<Algo>::value;
+template<typename Crc>
+constexpr static bool test_crc_v = test_crc<Crc>::value;
 
 //
 // CRCs validation test
@@ -319,5 +319,87 @@ static_assert(test_crc_v<CRC64_REDIS>);
 
 // non-standard CRC w/o check-value provided
 static_assert(test_crc_v<crc_algo<5, 0x15, false, false, 0, 0>>);
+
+// CRC on bits validation tester
+template<typename Crc, typename T, T In, unsigned InBits, typename Crc::type ExpVal>
+struct test_crc_bits
+{
+    static_assert(!Crc::refl_in && Crc::init_val == 0);
+
+    // reflected CRC
+    using Crc_r = crc_algo<
+        Crc::bits,
+        Crc::poly,
+        true,
+        true,
+        0, 0>;
+
+    constexpr static bool do_test()
+    {
+        constexpr auto crc = Crc::calc_bits(In, InBits);
+        constexpr auto crc_r = Crc_r::calc_bits(
+            // if possible add extra MSB bit to the reverted input (shall be ignored)
+            ((InBits & 7) ? ((T)1 << InBits) : 0) | bits_rev(In, InBits),
+            InBits);
+
+        return (crc == ExpVal)  && (crc_r == bits_rev(ExpVal, Crc::bits));
+    }
+
+    constexpr static bool value = do_test();
+};
+
+template<typename Crc, typename T, T In, unsigned InBits, typename Crc::type ExpVal>
+constexpr static bool test_crc_bits_v = test_crc_bits<Crc, T, In, InBits, ExpVal>::value;
+
+//
+// CRC on bits validation tests
+//
+// Test values computed directly from CRC definition using the following
+// on-line calculator: https://rndtool.info/CRC-step-by-step-calculator
+//
+
+using TEST_CRC4 = crc_algo<
+    4,
+    0x3,
+    false,
+    false,
+    0, 0>;
+
+static_assert(test_crc_bits_v<TEST_CRC4, uint8_t, 0x01, 1, 0x3>);
+static_assert(test_crc_bits_v<TEST_CRC4, uint8_t, 0x0f, 2, 0x5>);
+static_assert(test_crc_bits_v<TEST_CRC4, uint8_t, 0x11, 5, 0x6>);
+static_assert(test_crc_bits_v<TEST_CRC4, uint8_t, 0x14, 7, 0x9>);
+static_assert(test_crc_bits_v<TEST_CRC4, uint8_t, 0x65, 8, 0x2>);
+static_assert(test_crc_bits_v<TEST_CRC4, uint16_t, 0x29b, 10, 0x8>);
+static_assert(test_crc_bits_v<TEST_CRC4, uint16_t, 0x874e, 14, 0xd>);
+static_assert(test_crc_bits_v<TEST_CRC4, uint16_t, 0x8a6b, 16, 0xc>);
+static_assert(test_crc_bits_v<TEST_CRC4, uint32_t, 0x497d7, 18, 0xf>);
+static_assert(test_crc_bits_v<TEST_CRC4, uint32_t, 0x8802b, 20, 0x2>);
+static_assert(test_crc_bits_v<TEST_CRC4, uint32_t, 0x0f0f0f, 24, 0xc>);
+static_assert(test_crc_bits_v<TEST_CRC4, uint32_t, 0x3f3fbef, 26, 0xd>);
+static_assert(test_crc_bits_v<TEST_CRC4, uint32_t, 0xe4057854, 30, 0x5>);
+static_assert(test_crc_bits_v<TEST_CRC4, uint32_t, 0xffffffff, 32, 0x5>);
+
+using TEST_CRC16 = crc_algo<
+    16,
+    0x1021,
+    false,
+    false,
+    0, 0>;
+
+static_assert(test_crc_bits_v<TEST_CRC16, uint8_t, 0xff, 1, 0x1021>);
+static_assert(test_crc_bits_v<TEST_CRC16, uint8_t, 0x0f, 2, 0x3063>);
+static_assert(test_crc_bits_v<TEST_CRC16, uint8_t, 0xf3, 5, 0x2252>);
+static_assert(test_crc_bits_v<TEST_CRC16, uint8_t, 0x6f, 7, 0x9d49>);
+static_assert(test_crc_bits_v<TEST_CRC16, uint8_t, 0xeb, 8, 0x4c45>);
+static_assert(test_crc_bits_v<TEST_CRC16, uint16_t, 0xd375, 10, 0x7b61>);
+static_assert(test_crc_bits_v<TEST_CRC16, uint16_t, 0xacca, 14, 0x3b8d>);
+static_assert(test_crc_bits_v<TEST_CRC16, uint16_t, 0xa71f, 16, 0x6737>);
+static_assert(test_crc_bits_v<TEST_CRC16, uint32_t, 0x1d493, 18, 0x5d09>);
+static_assert(test_crc_bits_v<TEST_CRC16, uint32_t, 0xf3a927, 20, 0xaa33>);
+static_assert(test_crc_bits_v<TEST_CRC16, uint32_t, 0xff0f0f0, 24, 0x1f8c>);
+static_assert(test_crc_bits_v<TEST_CRC16, uint32_t, 0x43c3c3f, 26, 0x3780>);
+static_assert(test_crc_bits_v<TEST_CRC16, uint32_t, 0xf4408203, 30, 0xb62c>);
+static_assert(test_crc_bits_v<TEST_CRC16, uint32_t, 0xa4420810, 32, 0xc8d2>);
 
 } // unnamed namespace

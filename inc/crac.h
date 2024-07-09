@@ -255,11 +255,11 @@ public:
      * @note This is internal routine which is is not part of the library
      *     public interface. See @ref crc_algo::calc_bits(), block_eng::update_bits().
      */
-    constexpr static type _calc_byte(const uint8_t in, unsigned n_bits, type crc_in)
+    constexpr static type _calc_byte(uint8_t in, unsigned n_bits, type crc_in)
     {
         type crc = crc_in;
 
-        crc ^= in & (((type)1 << n_bits) - 1);
+        crc ^= in & (((uint8_t)1 << n_bits) - 1);
         while (n_bits--) {
             crc = (crc & 1 ? poly_rev : 0) ^ (crc >> 1);
         }
@@ -295,7 +295,7 @@ public:
         type crc = crc_in;
 
         while (len--) {
-            crc = crc ^ *in++;
+            crc ^= *in++;
             if constexpr (bits <= 8) {
                 crc = lookup[crc];
             } else {
@@ -320,16 +320,17 @@ public:
     __USING_ALGO_POLY_TRAITS(base);
 
     /// See @c _calc_byte() for reflected-input mode specialization.
-    constexpr static type _calc_byte(const uint8_t in, unsigned n_bits, type crc_in)
+    constexpr static type _calc_byte(uint8_t in, unsigned n_bits, type crc_in)
     {
         type crc = crc_in;
 
-        if (n_bits > bits) {
+        if (bits < n_bits) {
+            // type is uint8_t here
             const type msb = (type)1 << (n_bits - 1);
             const unsigned n_diff = n_bits - bits;
             const type poly_shl = poly << n_diff;
 
-            crc = (type)in ^ (crc << n_diff);
+            crc = in ^ (crc << n_diff);
             while (n_bits--) {
                 crc = (crc & msb ? poly_shl : 0) ^ (crc << 1);
             }
@@ -343,7 +344,6 @@ public:
                 crc = (crc & msb ? poly : 0) ^ (crc << 1);
             }
         }
-
         return crc & mask;
     }
 
@@ -355,6 +355,7 @@ public:
         const uint8_t *in, size_t len, type crc_in)
     {
         type crc = crc_in;
+
         if constexpr (bits < 8) {
             crc <<= (8 - bits);
         }
@@ -363,13 +364,15 @@ public:
             if constexpr (bits <= 8) {
                 crc = lookup[crc ^ *in++];
             } else {
-                crc = (crc << 8) ^
-                    lookup[(crc >> (bits - 8)) ^ (type)*in++];
+                crc = (crc << 8) ^ lookup[(crc >> (bits - 8)) ^ (type)*in++];
             }
         }
 
         if constexpr (bits < 8) {
+            // no need to mask output
             return crc >> (8 - bits);
+        } else if constexpr (bits == 8) {
+            return crc;
         } else {
             return crc & mask;
         }
@@ -432,8 +435,7 @@ public:
         }
         if constexpr (!xor_out) {
             return crc;
-        } else
-        if constexpr ((xor_out == mask) && (8 * sizeof(type) == bits)) {
+        } else if constexpr ((xor_out == mask) && (8 * sizeof(type) == bits)) {
             return ~crc;
         } else {
             return (crc ^ xor_out);
@@ -465,7 +467,7 @@ public:
             while (n_bytes--) {
                 uint8_t b = (uint8_t)in;
                 crc = base::_calc_tab(&b, 1, crc);
-                in >>= 8;
+                in = in >> 8;
             }
             if (r_bits) {
                 crc = base::_calc_byte((uint8_t)in, r_bits, crc);

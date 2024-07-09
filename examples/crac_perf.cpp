@@ -14,7 +14,6 @@
 #include <time.h>
 #include <sys/time.h>
 
-#define CRAC_TAB256
 #include "crac.h"
 
 static inline time_t get_ts()

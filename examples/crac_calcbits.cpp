@@ -39,7 +39,7 @@ int main(int argc, const char *argv[])
     {
         auto crc = CRC::calc_bits(in, n_bits);
 
-        // need to revert input bits to treat MSB as LSB for `CRC_refl' engine
+        // need to revert input bits to treat MSB as LSB for `CRC_refl'
         auto crc_refl = CRC_refl::calc_bits(bits_rev(in, n_bits), n_bits);
 
         // both CRCs must match
