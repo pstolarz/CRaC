@@ -30,6 +30,16 @@ enum class crc_tab_e {
 
 namespace {
 
+#if defined(__GNUC__) && defined(CRAC_EXTINT)
+# define __USE_EXTINT
+#endif
+
+#ifdef __USE_EXTINT
+using uint_max_t = __uint128_t;
+#else
+using uint_max_t = uint64_t;
+#endif
+
 #ifdef CRAC_TAB256
 constexpr inline crc_tab_e def_tab_type = crc_tab_e::TAB256;
 #else
@@ -145,16 +155,6 @@ private:
     // will fail subsequently
     return 0;
 }
-
-#if defined(__GNUC__) && defined(CRAC_EXTINT)
-# define __USE_EXTINT
-#endif
-
-#ifdef __USE_EXTINT
-using uint_max_t = __uint128_t;
-#else
-using uint_max_t = uint64_t;
-#endif
 
 // CRC type detector template
 template<unsigned U> struct pwr2;
@@ -345,7 +345,7 @@ public:
             if constexpr (bits <= 8) {
                 crc = lookup[crc];
             } else {
-                crc = (crc >> 8) ^ lookup[crc];
+                crc = lookup[crc] ^ (crc >> 8);
             }
         }
         return crc;
@@ -410,12 +410,11 @@ public:
             if constexpr (bits <= 8) {
                 crc = lookup[crc ^ *in++];
             } else {
-                crc = (crc << 8) ^ lookup[(crc >> (bits - 8)) ^ (type)*in++];
+                crc = lookup[(crc >> (bits - 8)) ^ *in++] ^ (crc << 8);
             }
         }
 
         if constexpr (bits < 8) {
-            // no need to mask output
             return crc >> (8 - bits);
         } else if constexpr (bits == 8) {
             return crc;
@@ -509,24 +508,52 @@ public:
         unsigned n_bytes = n_bits >> 3;
         const unsigned r_bits = n_bits & 7;
 
-        if constexpr (refl_in) {
+        if constexpr (refl_in)
+        {
             while (n_bytes--) {
-                uint8_t b = (uint8_t)in;
-                crc = base::_calc_tab(&b, 1, crc);
-                in = in >> 8;
+                crc ^= (uint8_t)in;
+                crc = base::lookup[crc] ^ (crc >> 8);
+                in >>= 8;
             }
+
             if (r_bits) {
-                crc = base::_calc_byte((uint8_t)in, r_bits, crc);
+                crc ^= in & (((uint8_t)1 << r_bits) - 1);
+                crc = base::lookup[crc << (8 - r_bits)] ^ (crc >> r_bits);
             }
-        } else {
+        } else
+        {
+            if constexpr (bits < 8) {
+                crc <<= (8 - bits);
+            }
+
             if (r_bits) {
                 n_bits -= r_bits;
-                crc = base::_calc_byte((uint8_t)(in >> n_bits), r_bits, crc);
+                const uint8_t in_b = (in >> n_bits) & (((uint8_t)1 << r_bits) - 1);
+
+                if constexpr (bits <= 8) {
+                    crc = base::lookup[crc ^ in_b] ^ (crc << r_bits);
+                } else {
+                    crc = base::lookup[(crc >> (bits - 8)) ^ in_b] ^ (crc << r_bits);
+                }
             }
+
             while (n_bytes--) {
                 n_bits -= 8;
-                uint8_t b = (uint8_t)(in >> n_bits);
-                crc = base::_calc_tab(&b, 1, crc);
+                const uint8_t in_b = in >> n_bits;
+
+                if constexpr (bits <= 8) {
+                    crc = base::lookup[crc ^ in_b];
+                } else {
+                    crc = base::lookup[(crc >> (bits - 8)) ^ in_b] ^ (crc << 8);
+                }
+            }
+
+            if constexpr (bits < 8) {
+                return crc >> (8 - bits);
+            } else if constexpr (bits == 8) {
+                return crc;
+            } else {
+                return crc & mask;
             }
         }
 
