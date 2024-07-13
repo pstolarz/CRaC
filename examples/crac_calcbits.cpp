@@ -23,6 +23,7 @@ int main(int argc, const char *argv[])
         false,          // direct mode
         false,          // result CRC is not reverted
         0, 0>;
+    auto crc_e = CRC::get_block_eng();
 
     using CRC_refl = crc_algo<
         CRC::bits,
@@ -37,13 +38,13 @@ int main(int argc, const char *argv[])
     // `n_bits' denotes number of bits to read (starting from LSB)
     for (unsigned n_bits = 0; n_bits <= (8 * sizeof(in)); n_bits++)
     {
-        auto crc = CRC::calc_bits(in, n_bits);
+        crc_e.update_bits(in, n_bits);
 
         // need to revert input bits to treat MSB as LSB for `CRC_refl'
         auto crc_refl = CRC_refl::calc_bits(bits_rev(in, n_bits), n_bits);
 
         // both CRCs must match
-        assert(crc == crc_refl);
+        assert(crc_e.final() == crc_refl);
     }
 
     return 0;

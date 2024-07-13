@@ -47,107 +47,107 @@ constexpr inline crc_tab_e def_tab_type = crc_tab_e::TAB16LH;
 #endif
 
 // CRC lookup table
-template<typename Algo,
-    bool ReflIn = Algo::refl_in, crc_tab_e TabType = Algo::tab_type>
+template<typename Crc,
+    bool ReflIn = Crc::refl_in, crc_tab_e TabType = Crc::tab_type>
 struct crc_tab;
 
 // reflected-input, 256 elements table
-template<typename Algo>
-struct crc_tab<Algo, true, crc_tab_e::TAB256>
+template<typename Crc>
+struct crc_tab<Crc, true, crc_tab_e::TAB256>
 {
     constexpr crc_tab()
     {
         uint8_t i = 0;
         do {
-            tab[i] = Algo::_calc_byte(i, 8, 0);
+            tab[i] = Crc::calc_byte(i, 8, 0);
         } while (++i);
     }
 
-    constexpr inline typename Algo::type operator[](uint8_t in) const {
+    constexpr inline typename Crc::type operator[](uint8_t in) const {
         return tab[in];
     }
 
 private:
-    typename Algo::type tab[256] = {};
+    typename Crc::type tab[256] = {};
 };
 
 // direct-input, 256 elements table
-template<typename Algo>
-struct crc_tab<Algo, false, crc_tab_e::TAB256>
+template<typename Crc>
+struct crc_tab<Crc, false, crc_tab_e::TAB256>
 {
     constexpr crc_tab()
     {
         uint8_t i = 0;
         do {
-            tab[i] = Algo::_calc_byte(i, 8, 0);
-            if constexpr (Algo::bits < 8) {
-                tab[i] <<= (8 - Algo::bits);
+            tab[i] = Crc::calc_byte(i, 8, 0);
+            if constexpr (Crc::bits < 8) {
+                tab[i] <<= (8 - Crc::bits);
             }
         } while (++i);
     }
 
-    constexpr inline typename Algo::type operator[](uint8_t in) const {
+    constexpr inline typename Crc::type operator[](uint8_t in) const {
         return tab[in];
     }
 
 private:
-    typename Algo::type tab[256] = {};
+    typename Crc::type tab[256] = {};
 };
 
 // reflected-input, 2*16 elements table
-template<typename Algo>
-struct crc_tab<Algo, true, crc_tab_e::TAB16LH>
+template<typename Crc>
+struct crc_tab<Crc, true, crc_tab_e::TAB16LH>
 {
     constexpr crc_tab()
     {
         for (uint8_t i = 0; i < 16; i++) {
-            tab_l[i] = Algo::_calc_byte(i, 8, 0);
+            tab_l[i] = Crc::calc_byte(i, 8, 0);
 
             uint8_t ih = i << 4;
-            tab_h[i] = Algo::_calc_byte(ih, 8, 0);
+            tab_h[i] = Crc::calc_byte(ih, 8, 0);
         }
     }
 
-    constexpr inline typename Algo::type operator[](uint8_t in) const {
+    constexpr inline typename Crc::type operator[](uint8_t in) const {
         return tab_l[in & 0xf] ^ tab_h[in >> 4];
     }
 
 private:
-    typename Algo::type tab_l[16] = {};
-    typename Algo::type tab_h[16] = {};
+    typename Crc::type tab_l[16] = {};
+    typename Crc::type tab_h[16] = {};
 };
 
 // direct-input, 2*16 elements table
-template<typename Algo>
-struct crc_tab<Algo, false, crc_tab_e::TAB16LH>
+template<typename Crc>
+struct crc_tab<Crc, false, crc_tab_e::TAB16LH>
 {
     constexpr crc_tab()
     {
         for (uint8_t i = 0; i < 16; i++) {
-            tab_l[i] = Algo::_calc_byte(i, 8, 0);
-            if constexpr (Algo::bits < 8) {
-                tab_l[i] <<= (8 - Algo::bits);
+            tab_l[i] = Crc::calc_byte(i, 8, 0);
+            if constexpr (Crc::bits < 8) {
+                tab_l[i] <<= (8 - Crc::bits);
             }
 
             uint8_t ih = i << 4;
-            tab_h[i] = Algo::_calc_byte(ih, 8, 0);
-            if constexpr (Algo::bits < 8) {
-                tab_h[i] <<= (8 - Algo::bits);
+            tab_h[i] = Crc::calc_byte(ih, 8, 0);
+            if constexpr (Crc::bits < 8) {
+                tab_h[i] <<= (8 - Crc::bits);
             }
         }
     }
 
-    constexpr inline typename Algo::type operator[](uint8_t in) const {
+    constexpr inline typename Crc::type operator[](uint8_t in) const {
         return tab_l[in & 0xf] ^ tab_h[in >> 4];
     }
 
 private:
-    typename Algo::type tab_l[16] = {};
-    typename Algo::type tab_h[16] = {};
+    typename Crc::type tab_l[16] = {};
+    typename Crc::type tab_h[16] = {};
 };
 
 // used at compile-time stage only
-[[maybe_unused]] constexpr inline unsigned pwr2_ceil(unsigned v)
+[[maybe_unused]] constexpr unsigned pwr2_ceil(unsigned v)
 {
     for (unsigned p2 = 8; p2; p2 <<= 1) {
         if (v <= p2) return p2;
@@ -221,7 +221,7 @@ constexpr inline uint8_t crc_check_str[] =
 
 /// Bits reversal (helper, utility routine).
 template<typename T>
-constexpr inline T bits_rev(T in, unsigned n_bits = 8 * sizeof(T))
+constexpr T bits_rev(T in, unsigned n_bits = 8 * sizeof(T))
 {
     constexpr uint8_t rev16_tab[] = {
         0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe,
@@ -274,6 +274,9 @@ struct crc_algo_poly_traits
 /**
  * CRC algorithm (polynomial context). See @ref crc_algo for details.
  *
+ * This class defines internal low level interface which is not part of the
+ * library public API. See @ref crc_algo for the public interface specification.
+ *
  * @note The template parameters uniquely define CRC algorithm lookup
  *     table, calculated at the compile time and assigned to the algorithm
  *     on the class-level (static) context.
@@ -295,13 +298,13 @@ public:
     __USING_ALGO_POLY_TRAITS(base);
 
     /**
-     * Calculate CRC for a byte (or its part) - slow version
-     * (direct calculation basing on mathematical definition).
+     * Calculate CRC for a byte (or its part) - slow version (direct calculation
+     * basing on mathematical definition).
      *
-     * @note This is internal routine which is is not part of the library
-     *     public interface. See @ref crc_algo::calc_bits(), block_eng::update_bits().
+     * @note The routine is used for internal lookup tables creation for fast
+     *     mode CRC calculation.
      */
-    constexpr static type _calc_byte(uint8_t in, unsigned n_bits, type crc_in)
+    constexpr static type calc_byte(uint8_t in, unsigned n_bits, type crc_in)
     {
         type crc = crc_in;
 
@@ -329,14 +332,10 @@ public:
     constexpr static crc_tab<crc_algo_poly> lookup{};
 
     /**
-     * Calculate CRC for table of bytes - fast version (basing on the
-     * CRC lookup table).
-     *
-     * @note This is internal routine which is is not part of the library
-     *     public interface. See @ref crc_algo::calc(), block_eng::update().
+     * Calculate CRC for table of bytes - fast version (basing on the CRC
+     * lookup table).
      */
-    constexpr inline static type _calc_tab(
-        const uint8_t *in, size_t len, type crc_in)
+    constexpr static type calc(const uint8_t *in, size_t len, type crc_in)
     {
         type crc = crc_in;
 
@@ -348,6 +347,31 @@ public:
                 crc = lookup[crc] ^ (crc >> 8);
             }
         }
+        return crc;
+    }
+
+    /**
+     * Base routine for CRC calculation of a given set of bits read from an
+     * arbitrary integer value.
+     */
+    template<typename T>
+    constexpr static type calc_bits(T in, unsigned n_bits, type crc_in)
+    {
+        type crc = crc_in;
+        unsigned n_bytes = n_bits >> 3;
+        const unsigned r_bits = n_bits & 7;
+
+        while (n_bytes--) {
+            crc ^= (uint8_t)in;
+            crc = lookup[crc] ^ (crc >> 8);
+            in >>= 8;
+        }
+
+        if (r_bits) {
+            crc ^= in & (((uint8_t)1 << r_bits) - 1);
+            crc = lookup[crc << (8 - r_bits)] ^ (crc >> r_bits);
+        }
+
         return crc;
     }
 };
@@ -365,8 +389,8 @@ private:
 public:
     __USING_ALGO_POLY_TRAITS(base);
 
-    /// See @c _calc_byte() for reflected-input mode specialization.
-    constexpr static type _calc_byte(uint8_t in, unsigned n_bits, type crc_in)
+    /// See @c calc_byte() for reflected-input mode specialization.
+    constexpr static type calc_byte(uint8_t in, unsigned n_bits, type crc_in)
     {
         type crc = crc_in;
 
@@ -382,7 +406,7 @@ public:
             }
             crc >>= n_diff;
         } else {
-            const type msb = (type)1 << (bits - 1);
+            constexpr type msb = (type)1 << (bits - 1);
             const unsigned n_diff = bits - n_bits;
 
             crc = ((type)in << n_diff) ^ crc;
@@ -396,9 +420,8 @@ public:
     // generate lookup table at the compile time
     constexpr static crc_tab<crc_algo_poly> lookup{};
 
-    /// See @c _calc_tab() for reflected-input mode specialization.
-    constexpr inline static type _calc_tab(
-        const uint8_t *in, size_t len, type crc_in)
+    /// See @c calc() for reflected-input mode specialization.
+    constexpr static type calc(const uint8_t *in, size_t len, type crc_in)
     {
         type crc = crc_in;
 
@@ -421,6 +444,51 @@ public:
         } else {
             return crc & mask;
         }
+    }
+
+    /// See @c calc_bits() for reflected-input mode specialization.
+    template<typename T>
+    constexpr static type calc_bits(T in, unsigned n_bits, type crc_in)
+    {
+        type crc = crc_in;
+        unsigned n_bytes = n_bits >> 3;
+        const unsigned r_bits = n_bits & 7;
+
+        if constexpr (bits < 8) {
+            crc <<= (8 - bits);
+        }
+
+        if (r_bits) {
+            n_bits -= r_bits;
+            const uint8_t in_b = (in >> n_bits) & (((uint8_t)1 << r_bits) - 1);
+
+            if constexpr (bits <= 8) {
+                crc = lookup[crc ^ in_b] ^ (crc << r_bits);
+            } else {
+                crc = lookup[(crc >> (bits - 8)) ^ in_b] ^ (crc << r_bits);
+            }
+        }
+
+        while (n_bytes--) {
+            n_bits -= 8;
+            const uint8_t in_b = in >> n_bits;
+
+            if constexpr (bits <= 8) {
+                crc = lookup[crc ^ in_b];
+            } else {
+                crc = lookup[(crc >> (bits - 8)) ^ in_b] ^ (crc << 8);
+            }
+        }
+
+        if constexpr (bits < 8) {
+            return crc >> (8 - bits);
+        } else if constexpr (bits == 8) {
+            return crc;
+        } else {
+            return crc & mask;
+        }
+
+        return crc;
     }
 };
 
@@ -451,7 +519,7 @@ template<
     unsigned Bits, uint_max_t Poly, bool ReflIn, bool ReflOut,
     uint_max_t InitVal, uint_max_t XorOut, uint_max_t CheckVal = ~(uint_max_t)0,
     crc_tab_e TabType = def_tab_type>
-struct crc_algo: crc_algo_poly<Bits, Poly, ReflIn, TabType>
+struct crc_algo: protected crc_algo_poly<Bits, Poly, ReflIn, TabType>
 {
 private:
     using base = crc_algo_poly<Bits, Poly, ReflIn, TabType>;
@@ -459,21 +527,11 @@ private:
 public:
     __USING_ALGO_POLY_TRAITS(base);
 
-    /// CRC in reflected-output mode (@c true), direct-output (@ false)
-    constexpr static bool refl_out = ReflOut;
-    /// Initial CRC input value
-    constexpr static type init_val =
-        (refl_in ?  bits_rev(InitVal, bits) : (InitVal & mask));
-    /// Final XOR value
-    constexpr static type xor_out = (XorOut & mask);
-
+protected:
     /**
      * Calculate final CRC value for a preliminary @c crc.
-     *
-     * @note This is internal routine which is is not part of the library
-     *     public interface. See @ref block_eng::final().
      */
-    constexpr inline static type _final(type crc)
+    constexpr inline static type final(type crc)
     {
         if constexpr (refl_in != refl_out) {
             crc = bits_rev(crc, bits);
@@ -487,77 +545,20 @@ public:
         }
     }
 
+public:
+    /// CRC in reflected-output mode (@c true), direct-output (@ false)
+    constexpr static bool refl_out = ReflOut;
+    /// Initial CRC input value
+    constexpr static type init_val =
+        (refl_in ?  bits_rev(InitVal, bits) : (InitVal & mask));
+    /// Final XOR value
+    constexpr static type xor_out = (XorOut & mask);
+
     /**
      * Calculate CRC for table of bytes - single step mode.
      */
     constexpr inline static type calc(const uint8_t *in, size_t len) {
-        return _final(base::_calc_tab(in, len, init_val));
-    }
-
-    /**
-     * Base routine for CRC calculation of a given set of bits read from
-     * an arbitrary integer value.
-     *
-     * @note This is internal routine which is is not part of the library
-     *     public interface. See @ref calc_bits() , @ref block_eng::update_bits().
-     */
-    template<typename T>
-    constexpr static type _calc_bits(T in, unsigned n_bits, type crc_in)
-    {
-        type crc = crc_in;
-        unsigned n_bytes = n_bits >> 3;
-        const unsigned r_bits = n_bits & 7;
-
-        if constexpr (refl_in)
-        {
-            while (n_bytes--) {
-                crc ^= (uint8_t)in;
-                crc = base::lookup[crc] ^ (crc >> 8);
-                in >>= 8;
-            }
-
-            if (r_bits) {
-                crc ^= in & (((uint8_t)1 << r_bits) - 1);
-                crc = base::lookup[crc << (8 - r_bits)] ^ (crc >> r_bits);
-            }
-        } else
-        {
-            if constexpr (bits < 8) {
-                crc <<= (8 - bits);
-            }
-
-            if (r_bits) {
-                n_bits -= r_bits;
-                const uint8_t in_b = (in >> n_bits) & (((uint8_t)1 << r_bits) - 1);
-
-                if constexpr (bits <= 8) {
-                    crc = base::lookup[crc ^ in_b] ^ (crc << r_bits);
-                } else {
-                    crc = base::lookup[(crc >> (bits - 8)) ^ in_b] ^ (crc << r_bits);
-                }
-            }
-
-            while (n_bytes--) {
-                n_bits -= 8;
-                const uint8_t in_b = in >> n_bits;
-
-                if constexpr (bits <= 8) {
-                    crc = base::lookup[crc ^ in_b];
-                } else {
-                    crc = base::lookup[(crc >> (bits - 8)) ^ in_b] ^ (crc << 8);
-                }
-            }
-
-            if constexpr (bits < 8) {
-                return crc >> (8 - bits);
-            } else if constexpr (bits == 8) {
-                return crc;
-            } else {
-                return crc & mask;
-            }
-        }
-
-        return crc;
+        return final(base::calc(in, len, init_val));
     }
 
     /**
@@ -568,7 +569,7 @@ public:
     template<typename T>
     constexpr inline static type calc_bits(T in, unsigned n_bits)
     {
-        return _final(_calc_bits(in, n_bits, init_val));
+        return final(base::calc_bits(in, n_bits, init_val));
     }
 
     // verify check-value correctness
@@ -595,7 +596,7 @@ public:
          * until @ref final() method call.
          */
         inline void update(const uint8_t *in, size_t len) {
-            crc = base::_calc_tab(in, len, crc);
+            crc = base::calc(in, len, crc);
         }
 
         /**
@@ -609,7 +610,7 @@ public:
         template<typename T>
         inline void update_bits(T in, unsigned n_bits)
         {
-            crc = _calc_bits(in, n_bits, crc);
+            crc = base::calc_bits(in, n_bits, crc);
         }
 
         /**
@@ -619,7 +620,7 @@ public:
          * for subsequent block calculations.
          */
         inline type final() {
-            type res = _final(crc);
+            type res = crc_algo::final(crc);
             crc = init_val;
             return res;
         }

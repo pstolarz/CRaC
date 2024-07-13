@@ -136,7 +136,7 @@ static_assert(CRC82_DARC::poly_rev == 0x220808a00a2022200c430_u128);
 
 // runtime objects size tester
 template<typename Crc>
-struct test_rt_sizes
+struct test_rt_sizes: Crc
 {
     constexpr static bool do_test()
     {
@@ -187,12 +187,11 @@ static_assert(test_rt_sizes_v<CRC82_DARC>);
 
 // CRC validation tester
 template<typename Crc>
-struct test_crc
+struct test_crc: Crc
 {
     constexpr static bool do_test()
     {
-        return (Crc::check_val == Crc::_final(
-            Crc::_calc_tab(crc_check_str, sizeof(crc_check_str), Crc::init_val)));
+        return (Crc::check_val == Crc::calc(crc_check_str, sizeof(crc_check_str)));
     }
 
     constexpr static bool value = do_test();
@@ -334,7 +333,7 @@ static_assert(test_crc_v<crc_algo<5, 0x15, false, false, 0, 0>>);
 
 // CRC on bits validation tester
 template<typename Crc, typename T, T In, unsigned InBits, typename Crc::type ExpVal>
-struct test_crc_bits
+struct test_crc_bits: Crc
 {
     static_assert(!Crc::refl_in && Crc::init_val == 0);
 
