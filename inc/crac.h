@@ -274,7 +274,7 @@ struct crc_algo_poly_traits
 /**
  * CRC algorithm (polynomial context). See @ref crc_algo for details.
  *
- * This class defines internal low level interface which is not part of the
+ * This class defines internal, low level interface which is not part of the
  * library public API. See @ref crc_algo for the public interface specification.
  *
  * @note The template parameters uniquely define CRC algorithm lookup
@@ -298,8 +298,9 @@ public:
     __USING_ALGO_POLY_TRAITS(base);
 
     /**
-     * Calculate CRC for a byte (or its part) - slow version (direct calculation
-     * basing on mathematical definition).
+     * Calculate CRC for a byte (or its part).
+     * This is slow mode routine basing on direct calculation derived from CRC
+     * mathematical definition.
      *
      * @note The routine is used for internal lookup tables creation for fast
      *     mode CRC calculation.
@@ -332,8 +333,8 @@ public:
     constexpr static crc_tab<crc_algo_poly> lookup{};
 
     /**
-     * Calculate CRC for table of bytes - fast version (basing on the CRC
-     * lookup table).
+     * Calculate CRC for table of bytes.
+     * This is fast mode routine basing on the CRC lookup tables.
      */
     constexpr static type calc(const uint8_t *in, size_t len, type crc_in)
     {
@@ -351,8 +352,8 @@ public:
     }
 
     /**
-     * Base routine for CRC calculation of a given set of bits read from an
-     * arbitrary integer value.
+     * Calculate bitwise CRC for arbitrary integer value.
+     * This is fast mode routine basing on the CRC lookup tables.
      */
     template<typename T>
     constexpr static type calc_bits(T in, unsigned n_bits, type crc_in)

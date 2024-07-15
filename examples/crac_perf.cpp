@@ -9,6 +9,10 @@
  * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the License for more information.
  */
+/*
+ * Performance tests.
+ * 1 million iteration of CRC calculation over table of 256 bytes.
+ */
 
 #include <stdio.h>
 #include <time.h>
@@ -27,15 +31,19 @@ int main(int argc, const char *argv[])
 {
     using namespace crac;
 
-    // input tab
-    uint8_t in[256];
-    for (size_t i = 0; i < sizeof(in); i++) in[i] = i;
+    using CRC = CRC32;
 
-    CRC32::type crc;
+    // input table
+    uint8_t in[256];
+    for (size_t i = 0; i < sizeof(in); i++) {
+        in[i] = i;
+    }
+
+    CRC::type crc;
     time_t start = get_ts();
 
     for (unsigned i = 0; i < 1'000'000; i++) {
-        crc = CRC32::calc(in, sizeof(in));
+        crc = CRC::calc(in, sizeof(in));
     }
     time_t stop = get_ts();
 

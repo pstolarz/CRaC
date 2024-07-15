@@ -11,8 +11,8 @@ The following features distinguish the library among dozens of other CRC librari
 
 **Runtime fast, compile-time optimized**
 
-Lookup tables (LUT) generation and all conditional branches are defined and
-checked at the compile time by a compiler, emitting the runtime output in
+Lookup tables (LUT) generation and (almost) all conditional branches are defined
+and checked at the compile time by a compiler, emitting the runtime output in
 reduced form, optimized for a particular CRC algorithm. Moreover, if an input
 for a calculated CRC checksum is known at the compile time, the library may
 calculate it purely at the compilation stage with no code emitted to the runtime.
@@ -31,7 +31,7 @@ platforms, where 1kB CRC-32 lookup table is too large. CRaC incorporates two
 significant performance penalty (see below for details).
 
 NOTE: Single 256-elements lookup table is still possible to use by defining
-`CRAC_TAB256`.
+`CRAC_TAB256` or passing appropriate argument to `crc_algo` template.
 
 **100+ predefined CRCs**
 

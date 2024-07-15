@@ -9,6 +9,10 @@
  * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the License for more information.
  */
+/*
+ * The example presents basic library usage for compile-time and runtime CRC
+ * calculations.
+ */
 
 #include <assert.h>
 

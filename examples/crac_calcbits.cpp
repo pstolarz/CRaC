@@ -9,6 +9,10 @@
  * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the License for more information.
  */
+/*
+ * The example presents usage of the bitwise CRC calculation and basing on
+ * this it's shown correlation between direct and reflected CRC algorithms.
+ */
 
 #include <assert.h>
 #include "crac.h"
