@@ -26,12 +26,12 @@ The library exploits special type of reduced size lookup table to decrease
 runtime footprint size. Most CRC libraries out there, which use lookup tables to
 increase CRC computation speed, base on a single 256-elements table to calculate
 single-byte CRC checksum. Such approach may by a blocker for tiny embedded
-platforms, where 1kB CRC-32 lookup table is too large. CRaC incorporates two
-16-elements lookup tables, drastically reducing the footprint, without
+platforms, where 1kB CRC-32 lookup table is too large. CRaC incorporates
+16- or 32-elements lookup tables, drastically reducing the footprint, without
 significant performance penalty (see below for details).
 
-NOTE: Single 256-elements lookup table is still possible to use by defining
-`CRAC_TAB256` or passing appropriate argument to `crc_algo` template.
+NOTE: Default type of LUT is chosen by defining appropriates `CRAC_TAB`
+macro-define or passing appropriate argument to `crc_algo` template.
 
 **100+ predefined CRCs**
 
@@ -57,7 +57,7 @@ CRC-32 computation timings for 1 million iterations over 256-bytes table with
 As may be seen, decent C++ compiler (clang) with basic optimization turned on
 (`-O`) produces code even more efficient than pure C library (`libcrc`).
 
-**256 vs 32-elements lookup table**
+**Lookup table type vs performance**
 
 By default CRaC works with 32-elements lookup tables, which produce lower
 footprint size with some performance loss as presented in the following table
@@ -67,6 +67,7 @@ footprint size with some performance loss as presented in the following table
 |---------|----------|----------|----------|----------|
 | 256-LUT | 0.452    | 1.440    | 0.524    | 1.48     |
 | 32-LUT  | 0.676    | 1.685    | 0.687    | 1.67     |
+| 16-LUT  |          |          |          |          |
 
 As a conclusion, unoptimized compilation introduces performance loss an order
 of magnitude larger than 32-elements lookup tables usage.
@@ -80,12 +81,16 @@ with size optimization turned on (`-Os`).
 
 |                  | FLASH [B]           | RAM [B]   |
 |------------------|---------------------|-----------|
+| CRC-8 (16-LUT)   |                     |           |
 | CRC-8 (32-LUT)   | 74(code)+32(LUT)    | 32(LUT)   |
 | CRC-8 (256-LUT)  | 50(code)+256(LUT)   | 256(LUT)  |
+| CRC-16 (16-LUT)  |                     |           |
 | CRC-16 (32-LUT)  | 86(code)+64(LUT)    | 64(LUT)   |
 | CRC-16 (256-LUT) | 60(code)+512(LUT)   | 512(LUT)  |
+| CRC-32 (16-LUT)  |                     |           |
 | CRC-32 (32-LUT)  | 144(code)+128(LUT)  | 128(LUT)  |
 | CRC-32 (256-LUT) | 92(code)+1024(LUT)  | 1024(LUT) |
+| CRC-64 (16-LUT)  |                     |           |
 | CRC-64 (32-LUT)  | 198(code)+256(LUT)  | 256(LUT)  |
 | CRC-64 (256-LUT) | 108(code)+2048(LUT) | 2048(LUT) |
 
@@ -98,8 +103,6 @@ the runtime phase. In the latter case the computation may be performed in two
 types of modes - single step mode and the block mode.
 
 ```c++
-// define to use 256-elements lookup table
-//#define CRAC_TAB256
 #include "crac.h"
 
 // ...

@@ -145,6 +145,8 @@ struct test_rt_sizes: Crc
 
         if constexpr (Crc::tab_type == crc_tab_e::TAB256) {
             return (sizeof(Crc::lookup) == 256 * sizeof(typename Crc::type));
+        } else if constexpr (Crc::tab_type == crc_tab_e::TAB16) {
+            return (sizeof(Crc::lookup) == 16 * sizeof(typename Crc::type));
         } else {
             return (sizeof(Crc::lookup) == 32 * sizeof(typename Crc::type));
         }

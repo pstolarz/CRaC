@@ -24,7 +24,8 @@ namespace crac {
 
 /// Types of CRC lookup tables
 enum class crc_tab_e {
-    TAB16LH = 0,
+    TAB16 = 0,
+    TAB32,
     TAB256
 };
 
@@ -42,9 +43,13 @@ using uint_max_t = uint64_t;
 
 #ifdef CRAC_TAB256
 constexpr inline crc_tab_e def_tab_type = crc_tab_e::TAB256;
+#elif defined(CRAC_TAB16)
+constexpr inline crc_tab_e def_tab_type = crc_tab_e::TAB16;
 #else
-constexpr inline crc_tab_e def_tab_type = crc_tab_e::TAB16LH;
+constexpr inline crc_tab_e def_tab_type = crc_tab_e::TAB32;
 #endif
+
+constexpr inline uint_max_t no_check_val = ~(uint_max_t)0;
 
 // CRC lookup table
 template<typename Crc,
@@ -94,17 +99,15 @@ private:
     typename Crc::type tab[256] = {};
 };
 
-// reflected-input, 2*16 elements table
+// reflected-input, 32 (2*16) elements table
 template<typename Crc>
-struct crc_tab<Crc, true, crc_tab_e::TAB16LH>
+struct crc_tab<Crc, true, crc_tab_e::TAB32>
 {
     constexpr crc_tab()
     {
         for (uint8_t i = 0; i < 16; i++) {
             tab_l[i] = Crc::calc_byte(i, 8, 0);
-
-            uint8_t ih = i << 4;
-            tab_h[i] = Crc::calc_byte(ih, 8, 0);
+            tab_h[i] = Crc::calc_byte(i << 4, 8, 0);
         }
     }
 
@@ -117,9 +120,9 @@ private:
     typename Crc::type tab_h[16] = {};
 };
 
-// direct-input, 2*16 elements table
+// direct-input, 32 (2*16) elements table
 template<typename Crc>
-struct crc_tab<Crc, false, crc_tab_e::TAB16LH>
+struct crc_tab<Crc, false, crc_tab_e::TAB32>
 {
     constexpr crc_tab()
     {
@@ -129,8 +132,7 @@ struct crc_tab<Crc, false, crc_tab_e::TAB16LH>
                 tab_l[i] <<= (8 - Crc::bits);
             }
 
-            uint8_t ih = i << 4;
-            tab_h[i] = Crc::calc_byte(ih, 8, 0);
+            tab_h[i] = Crc::calc_byte(i << 4, 8, 0);
             if constexpr (Crc::bits < 8) {
                 tab_h[i] <<= (8 - Crc::bits);
             }
@@ -144,6 +146,60 @@ struct crc_tab<Crc, false, crc_tab_e::TAB16LH>
 private:
     typename Crc::type tab_l[16] = {};
     typename Crc::type tab_h[16] = {};
+};
+
+// reflected-input, 16 elements table
+template<typename Crc>
+struct crc_tab<Crc, true, crc_tab_e::TAB16>
+{
+    constexpr crc_tab()
+    {
+        for (uint8_t i = 0; i < 16; i++) {
+            tab[i] = Crc::calc_byte(i, 4, 0);
+        }
+    }
+
+    constexpr inline typename Crc::type operator[](uint8_t in) const
+    {
+        typename Crc::type tl = tab[in & 0xf];
+        tl = tab[tl & 0xf] ^ (tl >> 4);
+        return tl ^ tab[in >> 4];
+    }
+
+private:
+    typename Crc::type tab[16] = {};
+};
+
+// direct-input, 16 elements table
+template<typename Crc>
+struct crc_tab<Crc, false, crc_tab_e::TAB16>
+{
+    constexpr crc_tab()
+    {
+        for (uint8_t i = 0; i < 16; i++) {
+            tab[i] = Crc::calc_byte(i, 4, 0);
+        }
+    }
+
+    constexpr inline typename Crc::type operator[](uint8_t in) const
+    {
+        typename Crc::type th = tab[in >> 4];
+
+        if constexpr (Crc::bits > 4) {
+            th = (tab[th >> (Crc::bits - 4)] ^ (th << 4)) & Crc::mask;
+        } else {
+            th = tab[th << (4 - Crc::bits)];
+        }
+
+        if constexpr (Crc::bits < 8) {
+            return (tab[in & 0xf] ^ th) << (8 - Crc::bits);
+        } else {
+            return tab[in & 0xf] ^ th;
+        }
+    }
+
+private:
+    typename Crc::type tab[16] = {};
 };
 
 // used at compile-time stage only
@@ -511,14 +567,14 @@ public:
  *     with CRC bit-mask, therefore accepts all-1s type of initialization.
  * @param CheckVal CRC check-value (CRC computed on "123456789" UTF-8
  *     string w/o trailing null-terminator). If this parameter is provided,
- *     its correctness is verified, if not then @c crc_algo::check_val is set
- *     to the proper check-value. All the computations are performed at the
- *     compile time.
+ *     its correctness is verified, if not (or set to @c no_check_val) then
+ *     @c crc_algo::check_val is set to the proper check-value. All the
+ *     computations are performed at the compile time.
  * @param TabType Type of CRC lookup table.
  */
 template<
     unsigned Bits, uint_max_t Poly, bool ReflIn, bool ReflOut,
-    uint_max_t InitVal, uint_max_t XorOut, uint_max_t CheckVal = ~(uint_max_t)0,
+    uint_max_t InitVal, uint_max_t XorOut, uint_max_t CheckVal = no_check_val,
     crc_tab_e TabType = def_tab_type>
 struct crc_algo: protected crc_algo_poly<Bits, Poly, ReflIn, TabType>
 {
@@ -574,12 +630,12 @@ public:
     }
 
     // verify check-value correctness
-    static_assert(CheckVal == ~(uint_max_t)0 ||
+    static_assert(CheckVal == no_check_val ||
         CheckVal == calc(crc_check_str, sizeof(crc_check_str)),
         "CRC check-value doesn't match");
 
     /// CRC check-value
-    constexpr static type check_val = (CheckVal == ~(uint_max_t)0 ?
+    constexpr static type check_val = (CheckVal == no_check_val ?
         calc(crc_check_str, sizeof(crc_check_str)) : CheckVal);
 
     /**

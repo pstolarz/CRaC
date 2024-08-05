@@ -15,9 +15,6 @@
  */
 
 #include <assert.h>
-
-// define to use 256-elements lookup table
-//#define CRAC_TAB256
 #include "crac.h"
 
 int main(int argc, const char *argv[])

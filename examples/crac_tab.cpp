@@ -10,8 +10,8 @@
  * See the License for more information.
  */
 /*
- * The example prints out internal 2*16 elements lookup tables used for fast
- * CRC calculation.
+ * The example prints out internal 32-LUT (2*16 elements) lookup table used
+ * for fast CRC calculation.
  */
 
 #include <assert.h>
@@ -65,8 +65,8 @@ int main(int argc, const char *argv[])
     CRC::type tab_l[16];
     CRC::type tab_h[16];
 
-    // Get L/H tables. Note it's not important here if
-    // the CRC bases internally on 256-LUT or 32-LUT tables.
+    // Get L/H tables.
+    // NOTE: it's not important here what type of LUT is used internally.
     for (uint8_t i = 0; i < 16; i++) {
         tab_l[i] = CRC_tab::get(i);
         tab_h[i] = CRC_tab::get(i << 4);
