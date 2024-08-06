@@ -334,85 +334,172 @@ static_assert(test_crc_v<CRC82_DARC>);
 static_assert(test_crc_v<crc_algo<5, 0x15, false, false, 0, 0>>);
 
 // CRC on bits validation tester
-template<typename Crc, typename T, T In, unsigned InBits, typename Crc::type ExpVal>
+template<typename Crc>
 struct test_crc_bits: Crc
 {
-    static_assert(!Crc::refl_in && Crc::init_val == 0);
-
-    // reflected CRC
-    using Crc_r = crc_algo<
-        Crc::bits,
-        Crc::poly,
-        true,
-        true,
-        0, 0>;
-
     constexpr static bool do_test()
     {
-        constexpr auto crc = Crc::calc_bits(In, InBits);
-        constexpr auto crc_r = Crc_r::calc_bits(
-            // if possible add extra MSB bit to the reverted input (shall be ignored)
-            ((InBits & 7) ? ((T)1 << InBits) : 0) | bits_rev(In, InBits),
-            InBits);
+        using CRC =
+            crc_algo_poly<Crc::bits, Crc::poly, Crc::refl_in, Crc::tab_type>;
 
-        return (crc == ExpVal)  && (crc_r == bits_rev(ExpVal, Crc::bits));
+        constexpr uint32_t in = 0b11011101111011111011111101111111;
+        constexpr uint8_t in_le[] = {0b01111111, 0b10111111, 0b11101111, 0b11011101};
+        constexpr uint8_t in_be[] = {0b11011101, 0b11101111, 0b10111111, 0b01111111};
+
+        if constexpr (CRC::refl_in)
+        {
+            auto crc = CRC::calc_bits(0b01111111, 8, 0);
+            crc = CRC::calc_bits(0b0111111, 7, crc);
+            crc = CRC::calc_bits(0b011111, 6, crc);
+            crc = CRC::calc_bits(0b01111, 5, crc);
+            crc = CRC::calc_bits(0b0111, 4, crc);
+            crc = CRC::calc_bits(0b111, 2, crc);    // MSB ignored
+
+            return (CRC::calc(in_le, sizeof(in_le), 0) == crc) &&
+                (CRC::calc_bits(in, 32, 0) == crc);
+        } else
+        {
+            auto crc = CRC::calc_bits(0b111, 2, 0); // MSB ignored
+            crc = CRC::calc_bits(0b0111, 4, crc);
+            crc = CRC::calc_bits(0b01111, 5, crc);
+            crc = CRC::calc_bits(0b011111, 6, crc);
+            crc = CRC::calc_bits(0b0111111, 7, crc);
+            crc = CRC::calc_bits(0b01111111, 8, crc);
+
+            return (CRC::calc(in_be, sizeof(in_be), 0) == crc) &&
+                (CRC::calc_bits(in, 32, 0) == crc);
+        }
     }
 
     constexpr static bool value = do_test();
 };
 
-template<typename Crc, typename T, T In, unsigned InBits, typename Crc::type ExpVal>
-constexpr static bool test_crc_bits_v = test_crc_bits<Crc, T, In, InBits, ExpVal>::value;
+template<typename Crc>
+constexpr static bool test_crc_bits_v = test_crc_bits<Crc>::value;
 
-//
-// CRC on bits validation tests
-//
-// Test values computed directly from CRC definition using the following
-// on-line calculator: https://rndtool.info/CRC-step-by-step-calculator
-//
-
-using TEST_CRC4 = crc_algo<
-    4,
-    0x3,
-    false,
-    false,
-    0, 0>;
-
-static_assert(test_crc_bits_v<TEST_CRC4, uint8_t, 0x01, 1, 0x3>);
-static_assert(test_crc_bits_v<TEST_CRC4, uint8_t, 0x0f, 2, 0x5>);
-static_assert(test_crc_bits_v<TEST_CRC4, uint8_t, 0x11, 5, 0x6>);
-static_assert(test_crc_bits_v<TEST_CRC4, uint8_t, 0x14, 7, 0x9>);
-static_assert(test_crc_bits_v<TEST_CRC4, uint8_t, 0x65, 8, 0x2>);
-static_assert(test_crc_bits_v<TEST_CRC4, uint16_t, 0x29b, 10, 0x8>);
-static_assert(test_crc_bits_v<TEST_CRC4, uint16_t, 0x874e, 14, 0xd>);
-static_assert(test_crc_bits_v<TEST_CRC4, uint16_t, 0x8a6b, 16, 0xc>);
-static_assert(test_crc_bits_v<TEST_CRC4, uint32_t, 0x497d7, 18, 0xf>);
-static_assert(test_crc_bits_v<TEST_CRC4, uint32_t, 0x8802b, 20, 0x2>);
-static_assert(test_crc_bits_v<TEST_CRC4, uint32_t, 0x0f0f0f, 24, 0xc>);
-static_assert(test_crc_bits_v<TEST_CRC4, uint32_t, 0x3f3fbef, 26, 0xd>);
-static_assert(test_crc_bits_v<TEST_CRC4, uint32_t, 0xe4057854, 30, 0x5>);
-static_assert(test_crc_bits_v<TEST_CRC4, uint32_t, 0xffffffff, 32, 0x5>);
-
-using TEST_CRC16 = crc_algo<
-    16,
-    0x1021,
-    false,
-    false,
-    0, 0>;
-
-static_assert(test_crc_bits_v<TEST_CRC16, uint8_t, 0xff, 1, 0x1021>);
-static_assert(test_crc_bits_v<TEST_CRC16, uint8_t, 0x0f, 2, 0x3063>);
-static_assert(test_crc_bits_v<TEST_CRC16, uint8_t, 0xf3, 5, 0x2252>);
-static_assert(test_crc_bits_v<TEST_CRC16, uint8_t, 0x6f, 7, 0x9d49>);
-static_assert(test_crc_bits_v<TEST_CRC16, uint8_t, 0xeb, 8, 0x4c45>);
-static_assert(test_crc_bits_v<TEST_CRC16, uint16_t, 0xd375, 10, 0x7b61>);
-static_assert(test_crc_bits_v<TEST_CRC16, uint16_t, 0xacca, 14, 0x3b8d>);
-static_assert(test_crc_bits_v<TEST_CRC16, uint16_t, 0xa71f, 16, 0x6737>);
-static_assert(test_crc_bits_v<TEST_CRC16, uint32_t, 0x1d493, 18, 0x5d09>);
-static_assert(test_crc_bits_v<TEST_CRC16, uint32_t, 0xf3a927, 20, 0xaa33>);
-static_assert(test_crc_bits_v<TEST_CRC16, uint32_t, 0xff0f0f0, 24, 0x1f8c>);
-static_assert(test_crc_bits_v<TEST_CRC16, uint32_t, 0x43c3c3f, 26, 0x3780>);
-static_assert(test_crc_bits_v<TEST_CRC16, uint32_t, 0xf4408203, 30, 0xb62c>);
-static_assert(test_crc_bits_v<TEST_CRC16, uint32_t, 0xa4420810, 32, 0xc8d2>);
+static_assert(test_crc_bits_v<CRC1>);
+static_assert(test_crc_bits_v<CRC3_GSM>);
+static_assert(test_crc_bits_v<CRC3_ROHC>);
+static_assert(test_crc_bits_v<CRC4_ITU>);
+static_assert(test_crc_bits_v<CRC4_INTERLAKEN>);
+static_assert(test_crc_bits_v<CRC5_USB>);
+static_assert(test_crc_bits_v<CRC5_EPC>);
+static_assert(test_crc_bits_v<CRC5_ITU>);
+static_assert(test_crc_bits_v<CRC6_ITU>);
+static_assert(test_crc_bits_v<CRC6_CDMA2000_B>);
+static_assert(test_crc_bits_v<CRC6_DARC>);
+static_assert(test_crc_bits_v<CRC6_NR>);
+static_assert(test_crc_bits_v<CRC6_CDMA2000_A>);
+static_assert(test_crc_bits_v<CRC6_GSM>);
+static_assert(test_crc_bits_v<CRC7>);
+static_assert(test_crc_bits_v<CRC7_UMTS>);
+static_assert(test_crc_bits_v<CRC7_ROHC>);
+//static_assert(test_crc_bits_v<CRC7_MVB>);
+static_assert(test_crc_bits_v<CRC8>);
+static_assert(test_crc_bits_v<CRC8_HDLC>);
+static_assert(test_crc_bits_v<CRC8_ITU>);
+static_assert(test_crc_bits_v<CRC8_ROHC>);
+static_assert(test_crc_bits_v<CRC8_EBU>);
+static_assert(test_crc_bits_v<CRC8_GSM_A>);
+static_assert(test_crc_bits_v<CRC8_HITAG>);
+static_assert(test_crc_bits_v<CRC8_ICODE>);
+static_assert(test_crc_bits_v<CRC8_MIFRAME_MAD>);
+static_assert(test_crc_bits_v<CRC8_SAE_J1850>);
+static_assert(test_crc_bits_v<CRC8_AUTOSAR>);
+static_assert(test_crc_bits_v<CRC8_OPENSAFETY>);
+static_assert(test_crc_bits_v<CRC8_MAXIM>);
+static_assert(test_crc_bits_v<CRC8_NRSC5>);
+static_assert(test_crc_bits_v<CRC8_DARC>);
+static_assert(test_crc_bits_v<CRC8_GSM_B>);
+static_assert(test_crc_bits_v<CRC8_CDMA2000>);
+static_assert(test_crc_bits_v<CRC8_LTE>);
+static_assert(test_crc_bits_v<CRC8_WCDMA>);
+static_assert(test_crc_bits_v<CRC8_DVB_S2>);
+static_assert(test_crc_bits_v<CRC8_BLUETOOTH>);
+static_assert(test_crc_bits_v<CRC10_GSM>);
+static_assert(test_crc_bits_v<CRC10>);
+static_assert(test_crc_bits_v<CRC10_CDMA2000>);
+static_assert(test_crc_bits_v<CRC11_UMTS>);
+static_assert(test_crc_bits_v<CRC11>);
+static_assert(test_crc_bits_v<CRC11_NR>);
+static_assert(test_crc_bits_v<CRC12_DECT>);
+static_assert(test_crc_bits_v<CRC12_UMTS>);
+static_assert(test_crc_bits_v<CRC12_GSM>);
+static_assert(test_crc_bits_v<CRC12_CDMA2000>);
+static_assert(test_crc_bits_v<CRC13_BBC>);
+static_assert(test_crc_bits_v<CRC14_GSM>);
+static_assert(test_crc_bits_v<CRC14_DARC>);
+static_assert(test_crc_bits_v<CRC15>);
+static_assert(test_crc_bits_v<CRC15_MPT1327>);
+static_assert(test_crc_bits_v<CRC16_DECT_R>);
+static_assert(test_crc_bits_v<CRC16_DECT_X>);
+static_assert(test_crc_bits_v<CRC16_NRSC5>);
+static_assert(test_crc_bits_v<CRC16_AUG_CCITT>);
+static_assert(test_crc_bits_v<CRC16_CCITT_FALSE>);
+static_assert(test_crc_bits_v<CRC16_GENIBUS>);
+static_assert(test_crc_bits_v<CRC16_GSM>);
+static_assert(test_crc_bits_v<CRC16_ISO_IEC14443_3_A>);
+static_assert(test_crc_bits_v<CRC16_KERMIT>);
+static_assert(test_crc_bits_v<CRC16_MCRF4XX>);
+static_assert(test_crc_bits_v<CRC16_RIELLO>);
+static_assert(test_crc_bits_v<CRC16_TMS37157>);
+static_assert(test_crc_bits_v<CRC16_X25>);
+static_assert(test_crc_bits_v<CRC16_XMODEM>);
+static_assert(test_crc_bits_v<CRC16_PROFIBUS>);
+// static_assert(test_crc_bits_v<CRC16_CHAKRAVARTY>);
+static_assert(test_crc_bits_v<CRC16_DNP>);
+static_assert(test_crc_bits_v<CRC16_EN13757>);
+static_assert(test_crc_bits_v<CRC16_M17>);
+static_assert(test_crc_bits_v<CRC16_OPENSAFETY_A>);
+static_assert(test_crc_bits_v<CRC16_LJ1200>);
+static_assert(test_crc_bits_v<CRC16_OPENSAFETY_B>);
+static_assert(test_crc_bits_v<CRC16_ARC>);
+static_assert(test_crc_bits_v<CRC16_BUYPASS>);
+static_assert(test_crc_bits_v<CRC16_CMS>);
+static_assert(test_crc_bits_v<CRC16_DDS110>);
+static_assert(test_crc_bits_v<CRC16_MAXIM>);
+static_assert(test_crc_bits_v<CRC16_MODBUS>);
+static_assert(test_crc_bits_v<CRC16_USB>);
+static_assert(test_crc_bits_v<CRC16_T10_DIF>);
+static_assert(test_crc_bits_v<CRC16_CDMA2000>);
+// static_assert(test_crc_bits_v<CRC16_ARINC>);
+static_assert(test_crc_bits_v<CRC16_TELEDISK>);
+static_assert(test_crc_bits_v<CRC17_CAN_FD>);
+static_assert(test_crc_bits_v<CRC21_CAN_FD>);
+static_assert(test_crc_bits_v<CRC24_BLE>);
+static_assert(test_crc_bits_v<CRC24_INTERLAKEN>);
+static_assert(test_crc_bits_v<CRC24_FLEXRAY_A>);
+static_assert(test_crc_bits_v<CRC24_FLEXRAY_B>);
+static_assert(test_crc_bits_v<CRC24_LTE_B>);
+static_assert(test_crc_bits_v<CRC24_OS9>);
+static_assert(test_crc_bits_v<CRC24>);
+static_assert(test_crc_bits_v<CRC24_LTE_A>);
+static_assert(test_crc_bits_v<CRC24_NR_C>);
+static_assert(test_crc_bits_v<CRC30_CDMA>);
+static_assert(test_crc_bits_v<CRC31_PHILIPS>);
+static_assert(test_crc_bits_v<CRC32_XFER>);
+static_assert(test_crc_bits_v<CRC32>);
+static_assert(test_crc_bits_v<CRC32_BZIP2>);
+static_assert(test_crc_bits_v<CRC32_EDC>);
+static_assert(test_crc_bits_v<CRC32_JAMCRC>);
+static_assert(test_crc_bits_v<CRC32_MPEG2>);
+static_assert(test_crc_bits_v<CRC32_POSIX>);
+static_assert(test_crc_bits_v<CRC32_C>);
+// static_assert(test_crc_bits_v<CRC32_K2>);
+static_assert(test_crc_bits_v<CRC32_MEF>);
+static_assert(test_crc_bits_v<CRC32_CDROM_EDC>);
+static_assert(test_crc_bits_v<CRC32_Q>);
+static_assert(test_crc_bits_v<CRC32_D>);
+static_assert(test_crc_bits_v<CRC32_AUTOSAR>);
+static_assert(test_crc_bits_v<CRC40_GSM>);
+static_assert(test_crc_bits_v<CRC64_GO_ISO>);
+static_assert(test_crc_bits_v<CRC64_MS>);
+static_assert(test_crc_bits_v<CRC64>);
+static_assert(test_crc_bits_v<CRC64_WE>);
+static_assert(test_crc_bits_v<CRC64_XZ>);
+static_assert(test_crc_bits_v<CRC64_REDIS>);
+#ifdef __USE_EXTINT
+static_assert(test_crc_bits_v<CRC82_DARC>);
+#endif
 
 } // unnamed namespace

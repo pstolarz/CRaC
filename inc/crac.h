@@ -51,7 +51,12 @@ constexpr inline crc_tab_e def_tab_type = crc_tab_e::TAB32;
 
 constexpr inline uint_max_t no_check_val = ~(uint_max_t)0;
 
-// CRC lookup table
+/**
+ * CRC lookup table (LUT).
+ *
+ * @note For performance reason, LUT table elements for 7-bit CRCs
+ *     and lower are left align to byte's most significant bit.
+ */
 template<typename Crc,
     bool ReflIn = Crc::refl_in, crc_tab_e TabType = Crc::tab_type>
 struct crc_tab;
@@ -511,19 +516,26 @@ public:
         unsigned n_bytes = n_bits >> 3;
         const unsigned r_bits = n_bits & 7;
 
-        if constexpr (bits < 8) {
-            crc <<= (8 - bits);
-        }
-
         if (r_bits) {
             n_bits -= r_bits;
             const uint8_t in_b = (in >> n_bits) & (((uint8_t)1 << r_bits) - 1);
 
-            if constexpr (bits <= 8) {
-                crc = lookup[crc ^ in_b] ^ (crc << r_bits);
+            if (bits <= r_bits) {
+                const unsigned n_diff = r_bits - bits;
+
+                crc = lookup[(crc << n_diff) ^ in_b];
             } else {
-                crc = lookup[(crc >> (bits - 8)) ^ in_b] ^ (crc << r_bits);
+                const unsigned n_diff = bits - r_bits;
+                const type l_crc = lookup[(crc >> n_diff) ^ in_b];
+
+                if constexpr (bits <= 8) {
+                    crc = l_crc ^ (crc << (8 - n_diff));
+                } else {
+                    crc = l_crc ^ (crc << r_bits);
+                }
             }
+        } else if constexpr (bits < 8) {
+            crc <<= (8 - bits);
         }
 
         while (n_bytes--) {
@@ -544,8 +556,6 @@ public:
         } else {
             return crc & mask;
         }
-
-        return crc;
     }
 };
 
