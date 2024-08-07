@@ -44,27 +44,27 @@ static void cal_perf(const uint8_t in[TAB_SIZE])
     time_t stop = get_ts();
 
     printf("CRC[%d]: 0x%08x, time: %f ms\n",
-        (Crc::tab_type == crc_tab_e::TAB256 ? 256 :
-             (Crc::tab_type == crc_tab_e::TAB32 ? 32 : 16)),
+        (Crc::lut_type == crc_lut_e::LUT256 ? 256 :
+             (Crc::lut_type == crc_lut_e::LUT32 ? 32 : 16)),
         crc, (stop - start) / 1000.0);
 }
 
 int main(int argc, const char *argv[])
 {
-    using CRC_TAB256 = crc_algo<CRC::bits, CRC::poly,
+    using CRC_LUT256 = crc_algo<CRC::bits, CRC::poly,
           CRC::refl_in, CRC::refl_out,
           CRC::init_val, CRC::xor_out,
-          no_check_val, crc_tab_e::TAB256>;
+          no_check_val, crc_lut_e::LUT256>;
 
-    using CRC_TAB32 = crc_algo<CRC::bits, CRC::poly,
+    using CRC_LUT32 = crc_algo<CRC::bits, CRC::poly,
           CRC::refl_in, CRC::refl_out,
           CRC::init_val, CRC::xor_out,
-          no_check_val, crc_tab_e::TAB32>;
+          no_check_val, crc_lut_e::LUT32>;
 
-    using CRC_TAB16 = crc_algo<CRC::bits, CRC::poly,
+    using CRC_LUT16 = crc_algo<CRC::bits, CRC::poly,
           CRC::refl_in, CRC::refl_out,
           CRC::init_val, CRC::xor_out,
-          no_check_val, crc_tab_e::TAB16>;
+          no_check_val, crc_lut_e::LUT16>;
 
     // input table
     uint8_t in[TAB_SIZE];
@@ -72,9 +72,9 @@ int main(int argc, const char *argv[])
         in[i] = i;
     }
 
-    cal_perf<CRC_TAB256>(in);
-    cal_perf<CRC_TAB32>(in);
-    cal_perf<CRC_TAB16>(in);
+    cal_perf<CRC_LUT256>(in);
+    cal_perf<CRC_LUT32>(in);
+    cal_perf<CRC_LUT16>(in);
 
     return 0;
 }

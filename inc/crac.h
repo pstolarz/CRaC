@@ -23,10 +23,10 @@
 namespace crac {
 
 /// Types of CRC lookup tables
-enum class crc_tab_e {
-    TAB16 = 0,
-    TAB32,
-    TAB256
+enum class crc_lut_e {
+    LUT16 = 0,
+    LUT32,
+    LUT256
 };
 
 namespace {
@@ -41,12 +41,12 @@ using uint_max_t = __uint128_t;
 using uint_max_t = uint64_t;
 #endif
 
-#ifdef CRAC_TAB256
-constexpr inline crc_tab_e def_tab_type = crc_tab_e::TAB256;
-#elif defined(CRAC_TAB16)
-constexpr inline crc_tab_e def_tab_type = crc_tab_e::TAB16;
+#ifdef CRAC_LUT256
+constexpr inline crc_lut_e def_lut_type = crc_lut_e::LUT256;
+#elif defined(CRAC_LUT16)
+constexpr inline crc_lut_e def_lut_type = crc_lut_e::LUT16;
 #else
-constexpr inline crc_tab_e def_tab_type = crc_tab_e::TAB32;
+constexpr inline crc_lut_e def_lut_type = crc_lut_e::LUT32;
 #endif
 
 constexpr inline uint_max_t no_check_val = ~(uint_max_t)0;
@@ -54,18 +54,18 @@ constexpr inline uint_max_t no_check_val = ~(uint_max_t)0;
 /**
  * CRC lookup table (LUT).
  *
- * @note For performance reason, LUT table elements for 7-bit CRCs
- *     and lower are left align to byte's most significant bit.
+ * @note For performance reason, LUT elements for 7-bit CRCs and lower
+ *     are left-aligned to byte's most significant bit.
  */
 template<typename Crc,
-    bool ReflIn = Crc::refl_in, crc_tab_e TabType = Crc::tab_type>
-struct crc_tab;
+    bool ReflIn = Crc::refl_in, crc_lut_e LutType = Crc::lut_type>
+struct crc_lut;
 
-// reflected-input, 256 elements table
+/// LUT-256, reflected-input
 template<typename Crc>
-struct crc_tab<Crc, true, crc_tab_e::TAB256>
+struct crc_lut<Crc, true, crc_lut_e::LUT256>
 {
-    constexpr crc_tab()
+    constexpr crc_lut()
     {
         uint8_t i = 0;
         do {
@@ -81,11 +81,11 @@ private:
     typename Crc::type tab[256] = {};
 };
 
-// direct-input, 256 elements table
+/// LUT-256, direct-input
 template<typename Crc>
-struct crc_tab<Crc, false, crc_tab_e::TAB256>
+struct crc_lut<Crc, false, crc_lut_e::LUT256>
 {
-    constexpr crc_tab()
+    constexpr crc_lut()
     {
         uint8_t i = 0;
         do {
@@ -104,11 +104,11 @@ private:
     typename Crc::type tab[256] = {};
 };
 
-// reflected-input, 32 (2*16) elements table
+/// LUT-32, reflected-input
 template<typename Crc>
-struct crc_tab<Crc, true, crc_tab_e::TAB32>
+struct crc_lut<Crc, true, crc_lut_e::LUT32>
 {
-    constexpr crc_tab()
+    constexpr crc_lut()
     {
         for (uint8_t i = 0; i < 16; i++) {
             tab_l[i] = Crc::calc_byte(i, 8, 0);
@@ -125,11 +125,11 @@ private:
     typename Crc::type tab_h[16] = {};
 };
 
-// direct-input, 32 (2*16) elements table
+/// LUT-32, direct-input
 template<typename Crc>
-struct crc_tab<Crc, false, crc_tab_e::TAB32>
+struct crc_lut<Crc, false, crc_lut_e::LUT32>
 {
-    constexpr crc_tab()
+    constexpr crc_lut()
     {
         for (uint8_t i = 0; i < 16; i++) {
             tab_l[i] = Crc::calc_byte(i, 8, 0);
@@ -153,11 +153,11 @@ private:
     typename Crc::type tab_h[16] = {};
 };
 
-// reflected-input, 16 elements table
+/// LUT-16, reflected-input
 template<typename Crc>
-struct crc_tab<Crc, true, crc_tab_e::TAB16>
+struct crc_lut<Crc, true, crc_lut_e::LUT16>
 {
-    constexpr crc_tab()
+    constexpr crc_lut()
     {
         for (uint8_t i = 0; i < 16; i++) {
             tab[i] = Crc::calc_byte(i, 4, 0);
@@ -175,11 +175,11 @@ private:
     typename Crc::type tab[16] = {};
 };
 
-// direct-input, 16 elements table
+/// LUT-16, direct-input
 template<typename Crc>
-struct crc_tab<Crc, false, crc_tab_e::TAB16>
+struct crc_lut<Crc, false, crc_lut_e::LUT16>
 {
-    constexpr crc_tab()
+    constexpr crc_lut()
     {
         for (uint8_t i = 0; i < 16; i++) {
             tab[i] = Crc::calc_byte(i, 4, 0);
@@ -249,6 +249,7 @@ template<typename T> using _make_unsigned_t = typename _make_unsigned<T>::type;
 } // unnamed namespace
 
 #ifdef __USE_EXTINT
+/// u128 literal operator
 constexpr __uint128_t operator""_u128(const char* x)
 {
     __uint128_t y = 0;
@@ -302,7 +303,7 @@ constexpr T bits_rev(T in, unsigned n_bits = 8 * sizeof(T))
  * Supplementary class acting as a traits definitions base class for
  * @c crc_algo_poly.
  */
-template<unsigned Bits, uint_max_t Poly, bool ReflIn, crc_tab_e TabType>
+template<unsigned Bits, uint_max_t Poly, bool ReflIn, crc_lut_e LutType>
 struct crc_algo_poly_traits
 {
     static_assert(Bits >= 1 && Bits <= 8 * sizeof(uint_max_t), "Invalid CRC size");
@@ -320,7 +321,7 @@ struct crc_algo_poly_traits
     /// The template specialization defines reflected-input algorithms
     constexpr static bool refl_in = ReflIn;
     /// Type of CRC lookup table used
-    constexpr static crc_tab_e tab_type = TabType;
+    constexpr static crc_lut_e lut_type = LutType;
 };
 
 #define __USING_ALGO_POLY_TRAITS(__base) \
@@ -329,7 +330,7 @@ struct crc_algo_poly_traits
     using __base::poly; \
     using __base::poly_rev; \
     using __base::refl_in; \
-    using __base::tab_type; \
+    using __base::lut_type; \
     using typename __base::type
 
 /**
@@ -342,18 +343,18 @@ struct crc_algo_poly_traits
  *     table, calculated at the compile time and assigned to the algorithm
  *     on the class-level (static) context.
  */
-template<unsigned Bits, uint_max_t Poly, bool ReflIn, crc_tab_e TabType>
+template<unsigned Bits, uint_max_t Poly, bool ReflIn, crc_lut_e LutType>
 struct crc_algo_poly;
 
 /**
  * @c crc_algo_poly template in reflected-input (LSB) mode specialization.
  */
-template<unsigned Bits, uint_max_t Poly, crc_tab_e TabType>
-struct crc_algo_poly<Bits, Poly, true, TabType>:
-    crc_algo_poly_traits<Bits, Poly, true, TabType>
+template<unsigned Bits, uint_max_t Poly, crc_lut_e LutType>
+struct crc_algo_poly<Bits, Poly, true, LutType>:
+    crc_algo_poly_traits<Bits, Poly, true, LutType>
 {
 private:
-    using base = crc_algo_poly_traits<Bits, Poly, true, TabType>;
+    using base = crc_algo_poly_traits<Bits, Poly, true, LutType>;
 
 public:
     __USING_ALGO_POLY_TRAITS(base);
@@ -383,15 +384,15 @@ public:
      * definition. On the other side C++14 doesn't allow to define static
      * template members directly in the template, requiring them to be defined
      * outside of the template class. Consequently an attempt to compile CRaC
-     * by C++14 will end up with linkage error caused by lack of 'lookup'
-     * symbol definition. To make the C++14 compiler happy, it would require
-     * to define lookup tables in separate compilation module(s), build them
-     * separately and combine at the linking stage. Unfortunately this approach
-     * eliminates the benefit of compile-time lookup tables generation and
-     * usage by a single-header include, the library has been designed for.
+     * by C++14 will end up with linkage error caused by lack of 'lut' symbol
+     * definition. To make the C++14 compiler happy, it would require to define
+     * lookup tables in separate compilation module(s), build them separately
+     * and combine at the linking stage. Unfortunately this approach eliminates
+     * the benefit of compile-time lookup tables generation and usage by a
+     * single-header include, the library has been designed for.
      */
     // generate lookup table at the compile time
-    constexpr static crc_tab<crc_algo_poly> lookup{};
+    constexpr static crc_lut<crc_algo_poly> lut{};
 
     /**
      * Calculate CRC for table of bytes.
@@ -404,9 +405,9 @@ public:
         while (len--) {
             crc ^= *in++;
             if constexpr (bits <= 8) {
-                crc = lookup[crc];
+                crc = lut[crc];
             } else {
-                crc = lookup[crc] ^ (crc >> 8);
+                crc = lut[crc] ^ (crc >> 8);
             }
         }
         return crc;
@@ -425,13 +426,13 @@ public:
 
         while (n_bytes--) {
             crc ^= (uint8_t)in;
-            crc = lookup[crc] ^ (crc >> 8);
+            crc = lut[crc] ^ (crc >> 8);
             in >>= 8;
         }
 
         if (r_bits) {
             crc ^= in & (((uint8_t)1 << r_bits) - 1);
-            crc = lookup[crc << (8 - r_bits)] ^ (crc >> r_bits);
+            crc = lut[crc << (8 - r_bits)] ^ (crc >> r_bits);
         }
 
         return crc;
@@ -441,12 +442,12 @@ public:
 /**
  * @c crc_algo_poly in direct-input (MSB) mode specialization.
  */
-template<unsigned Bits, uint_max_t Poly, crc_tab_e TabType>
-struct crc_algo_poly<Bits, Poly, false, TabType>:
-    crc_algo_poly_traits<Bits, Poly, false, TabType>
+template<unsigned Bits, uint_max_t Poly, crc_lut_e LutType>
+struct crc_algo_poly<Bits, Poly, false, LutType>:
+    crc_algo_poly_traits<Bits, Poly, false, LutType>
 {
 private:
-    using base = crc_algo_poly_traits<Bits, Poly, false, TabType>;
+    using base = crc_algo_poly_traits<Bits, Poly, false, LutType>;
 
 public:
     __USING_ALGO_POLY_TRAITS(base);
@@ -480,7 +481,7 @@ public:
     }
 
     // generate lookup table at the compile time
-    constexpr static crc_tab<crc_algo_poly> lookup{};
+    constexpr static crc_lut<crc_algo_poly> lut{};
 
     /// See @c calc() for reflected-input mode specialization.
     constexpr static type calc(const uint8_t *in, size_t len, type crc_in)
@@ -493,9 +494,9 @@ public:
 
         while (len--) {
             if constexpr (bits <= 8) {
-                crc = lookup[crc ^ *in++];
+                crc = lut[crc ^ *in++];
             } else {
-                crc = lookup[(crc >> (bits - 8)) ^ *in++] ^ (crc << 8);
+                crc = lut[(crc >> (bits - 8)) ^ *in++] ^ (crc << 8);
             }
         }
 
@@ -523,10 +524,10 @@ public:
             if (bits <= r_bits) {
                 const unsigned n_diff = r_bits - bits;
 
-                crc = lookup[(crc << n_diff) ^ in_b];
+                crc = lut[(crc << n_diff) ^ in_b];
             } else {
                 const unsigned n_diff = bits - r_bits;
-                const type l_crc = lookup[(crc >> n_diff) ^ in_b];
+                const type l_crc = lut[(crc >> n_diff) ^ in_b];
 
                 if constexpr (bits <= 8) {
                     crc = l_crc ^ (crc << (8 - n_diff));
@@ -543,9 +544,9 @@ public:
             const uint8_t in_b = in >> n_bits;
 
             if constexpr (bits <= 8) {
-                crc = lookup[crc ^ in_b];
+                crc = lut[crc ^ in_b];
             } else {
-                crc = lookup[(crc >> (bits - 8)) ^ in_b] ^ (crc << 8);
+                crc = lut[(crc >> (bits - 8)) ^ in_b] ^ (crc << 8);
             }
         }
 
@@ -580,16 +581,16 @@ public:
  *     its correctness is verified, if not (or set to @c no_check_val) then
  *     @c crc_algo::check_val is set to the proper check-value. All the
  *     computations are performed at the compile time.
- * @param TabType Type of CRC lookup table.
+ * @param LutType Type of CRC lookup table.
  */
 template<
     unsigned Bits, uint_max_t Poly, bool ReflIn, bool ReflOut,
     uint_max_t InitVal, uint_max_t XorOut, uint_max_t CheckVal = no_check_val,
-    crc_tab_e TabType = def_tab_type>
-struct crc_algo: protected crc_algo_poly<Bits, Poly, ReflIn, TabType>
+    crc_lut_e LutType = def_lut_type>
+struct crc_algo: protected crc_algo_poly<Bits, Poly, ReflIn, LutType>
 {
 private:
-    using base = crc_algo_poly<Bits, Poly, ReflIn, TabType>;
+    using base = crc_algo_poly<Bits, Poly, ReflIn, LutType>;
 
 public:
     __USING_ALGO_POLY_TRAITS(base);
@@ -729,7 +730,7 @@ using CRC7 = crc_algo<7, 0x09, false, false, 0, 0, 0x75>;
 using CRC7_MMC = CRC7;
 using CRC7_UMTS = crc_algo<7, 0x45, false, false, 0, 0, 0x61>;
 using CRC7_ROHC = crc_algo<7, 0x4f, true, true, 0x7f, 0, 0x53>;
-// using CRC7_MVB = crc_algo<7, 0x65, false, false, 0, 0, 0x1f>;
+using CRC7_MVB = crc_algo<7, 0x65, false, false, 0, 0, 0x1f>;
 using CRC8 = crc_algo<8, 0x07, false, false, 0, 0, 0xf4>;
 using CRC8_PRIME = CRC8;
 using CRC8_SMBUS = CRC8;
@@ -816,7 +817,7 @@ using CRC16_LTE = CRC16_XMODEM;
 using CRC16_V41_MSB = CRC16_XMODEM;
 using CRC16_PROFIBUS = crc_algo<16, 0x1dcf, false, false, 0xffff, 0xffff, 0xa819>;
 using CRC16_IEC61158_2 = CRC16_PROFIBUS;
-// using CRC16_CHAKRAVARTY = crc_algo<16, 0x2f15, false, false, 0, 0, 0xa2d1>;
+using CRC16_CHAKRAVARTY = crc_algo<16, 0x2f15, false, false, 0, 0, 0xa2d1>;
 using CRC16_DNP = crc_algo<16, 0x3d65, true, true, 0, 0xffff, 0xea82>;
 using CRC16_EN13757 = crc_algo<16, 0x3d65, false, false, 0, 0xffff, 0xc2b7>;
 using CRC16_M17 = crc_algo<16, 0x5935, false, false, 0xffff, 0, 0x772b>;
@@ -837,7 +838,7 @@ using CRC16_MODBUS = crc_algo<16, 0x8005, true, true, 0xffff, 0, 0x4b37>;
 using CRC16_USB = crc_algo<16, 0x8005, true, true, 0xffff, 0xffff, 0xb4c8>;
 using CRC16_T10_DIF = crc_algo<16, 0x8bb7, false, false, 0, 0, 0xd0db>;
 using CRC16_CDMA2000 = crc_algo<16, 0xc867, false, false, 0xffff, 0, 0x4c06>;
-// using CRC16_ARINC = crc_algo<16, 0xa02b, false, false, 0, 0, 0xeba4>;
+using CRC16_ARINC = crc_algo<16, 0xa02b, false, false, 0, 0, 0xeba4>;
 using CRC16_TELEDISK = crc_algo<16, 0xa097, false, false, 0, 0, 0x0fb3>;
 using CRC17_CAN_FD = crc_algo<17, 0x1685b, false, false, 0, 0, 0x04f03>;
 using CRC21_CAN_FD = crc_algo<21, 0x102899, false, false, 0, 0, 0x0ed841>;
@@ -874,7 +875,7 @@ using CRC32_BASE91_C = CRC32_C;
 using CRC32_CASTAGNOLI = CRC32_C;
 using CRC32_INTERLAKEN = CRC32_C;
 using CRC32_ISCSI = CRC32_C;
-// using CRC32_K2 = crc_algo<32, 0x32583499, true, true, 0xffffffff, 0, 0x1148ab33>;
+using CRC32_K2 = crc_algo<32, 0x32583499, true, true, 0xffffffff, 0, 0x1148ab33>;
 using CRC32_MEF = crc_algo<32, 0x741b8cd7, true, true, 0xffffffff, 0, 0xd2c22f51>;
 using CRC32_K = CRC32_MEF;
 using CRC32_CDROM_EDC = crc_algo<32, 0x8001801b, true, true, 0, 0, 0x6ec2edc4>;

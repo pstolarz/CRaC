@@ -30,7 +30,7 @@ platforms, where 1kB CRC-32 lookup table is too large. CRaC incorporates
 16- or 32-elements lookup tables, drastically reducing the footprint, without
 significant performance penalty (see below for details).
 
-NOTE: Default type of LUT is chosen by defining appropriates `CRAC_TAB`
+NOTE: Default type of LUT is chosen by defining appropriates `CRAC_LUT`
 macro-define or passing appropriate argument to `crc_algo` template.
 
 **100+ predefined CRCs**
@@ -48,29 +48,30 @@ techniques to produce fast and efficient code. The following table presents
 CRC-32 computation timings for 1 million iterations over 256-bytes table with
 256-elements lookup table used (values in ms):
 
-|            | clang -O | clang    | gcc -O   | gcc      |
-|------------|----------|----------|----------|----------|
-| CRaC       |**0.452** | 1.440    | 0.524    | 1.48     |
-| CRC++      | 0.525    | 1.170    | 0.522    | 1.08     |
-| libcrc     | 0.514    | 0.516    | 0.516    | 0.518    |
+|            | gcc -O   | gcc      |
+|------------|----------|----------|
+| CRaC       |**0.440** | 1.350    |
+| CRC++      | 0.522    | 1.08     |
+| libcrc     | 0.516    | 0.518    |
 
-As may be seen, decent C++ compiler (clang) with basic optimization turned on
-(`-O`) produces code even more efficient than pure C library (`libcrc`).
+As may be seen, even basic optimization turned on (`-O`) produces code even
+more efficient than pure C library (`libcrc`).
+
+Compiler version used for tests: `gcc (Debian 13.3.0-3) 13.3.0`.
 
 **Lookup table type vs performance**
 
-By default CRaC works with 32-elements lookup tables, which produce lower
-footprint size with some performance loss as presented in the following table
-(the same test conditions as previously; values in ms):
+The following table presented CRC-32 compilation timings for different lookup
+tables. The same test conditions as previously (values in ms):
 
-|         | clang -O | clang    | gcc -O   | gcc      |
-|---------|----------|----------|----------|----------|
-| 256-LUT | 0.452    | 1.440    | 0.524    | 1.48     |
-| 32-LUT  | 0.676    | 1.685    | 0.687    | 1.67     |
-| 16-LUT  |          |          |          |          |
+|         | gcc -O   | gcc      |
+|---------|----------|----------|
+| LUT-256 | 0.524    | 1.350    |
+| LUT-32  | 0.680    | 1.608    |
+| LUT-16  | 0.922    | 2.592    |
 
-As a conclusion, unoptimized compilation introduces performance loss an order
-of magnitude larger than 32-elements lookup tables usage.
+As a conclusion, unoptimized compilation introduces performance loss much more
+severely than lookup table size reduction.
 
 **Runtime footprint**
 
@@ -81,17 +82,17 @@ with size optimization turned on (`-Os`).
 
 |                  | FLASH [B]           | RAM [B]   |
 |------------------|---------------------|-----------|
-| CRC-8 (16-LUT)   |                     |           |
-| CRC-8 (32-LUT)   | 74(code)+32(LUT)    | 32(LUT)   |
-| CRC-8 (256-LUT)  | 50(code)+256(LUT)   | 256(LUT)  |
-| CRC-16 (16-LUT)  |                     |           |
-| CRC-16 (32-LUT)  | 86(code)+64(LUT)    | 64(LUT)   |
-| CRC-16 (256-LUT) | 60(code)+512(LUT)   | 512(LUT)  |
-| CRC-32 (16-LUT)  |                     |           |
-| CRC-32 (32-LUT)  | 144(code)+128(LUT)  | 128(LUT)  |
-| CRC-32 (256-LUT) | 92(code)+1024(LUT)  | 1024(LUT) |
-| CRC-64 (16-LUT)  |                     |           |
-| CRC-64 (32-LUT)  | 198(code)+256(LUT)  | 256(LUT)  |
+| CRC-8 (LUT-16)   |                     |           |
+| CRC-8 (LUT-32)   | 74(code)+32(LUT)    | 32(LUT)   |
+| CRC-8 (LUT-256)  | 50(code)+256(LUT)   | 256(LUT)  |
+| CRC-16 (LUT-16)  |                     |           |
+| CRC-16 (LUT-32)  | 86(code)+64(LUT)    | 64(LUT)   |
+| CRC-16 (LUT-256) | 60(code)+512(LUT)   | 512(LUT)  |
+| CRC-32 (LUT-16)  |                     |           |
+| CRC-32 (LUT-32)  | 144(code)+128(LUT)  | 128(LUT)  |
+| CRC-32 (LUT-256) | 92(code)+1024(LUT)  | 1024(LUT) |
+| CRC-64 (LUT-16)  |                     |           |
+| CRC-64 (LUT-32)  | 198(code)+256(LUT)  | 256(LUT)  |
 | CRC-64 (256-LUT) | 108(code)+2048(LUT) | 2048(LUT) |
 
 
@@ -160,6 +161,7 @@ The library provides the following set of predefined CRCs:
 | CRC7                   | 0x09                    | N      | N       | 0        | 0        | 0x75                    |
 | CRC7_UMTS              | 0x45                    | N      | N       | 0        | 0        | 0x61                    |
 | CRC7_ROHC              | 0x4f                    | Y      | Y       | ~0       | 0        | 0x53                    |
+| CRC7_MVB               | 0x65                    | N      | N       | 0        | 0        | 0x1f                    |
 | CRC8                   | 0x07                    | N      | N       | 0        | 0        | 0xf4                    |
 | CRC8_HDLC              | 0x07                    | Y      | Y       | ~0       | ~0       | 0x2f                    |
 | CRC8_ITU               | 0x07                    | N      | N       | 0        | 0x55     | 0xa1                    |
@@ -211,6 +213,7 @@ The library provides the following set of predefined CRCs:
 | CRC16_X25              | 0x1021                  | Y      | Y       | ~0       | ~0       | 0x906e                  |
 | CRC16_XMODEM           | 0x1021                  | N      | N       | 0        | 0        | 0x31c3                  |
 | CRC16_PROFIBUS         | 0x1dcf                  | N      | N       | ~0       | ~0       | 0xa819                  |
+| CRC16_CHAKRAVARTY      | 0x2f15                  | N      | N       | 0        | 0        | 0xa2d1                  |
 | CRC16_DNP              | 0x3d65                  | Y      | Y       | 0        | ~0       | 0xea82                  |
 | CRC16_EN13757          | 0x3d65                  | N      | N       | 0        | ~0       | 0xc2b7                  |
 | CRC16_M17              | 0x5935                  | N      | N       | ~0       | 0        | 0x772b                  |
@@ -226,6 +229,7 @@ The library provides the following set of predefined CRCs:
 | CRC16_USB              | 0x8005                  | Y      | Y       | ~0       | ~0       | 0xb4c8                  |
 | CRC16_T10_DIF          | 0x8bb7                  | N      | N       | 0        | 0        | 0xd0db                  |
 | CRC16_CDMA2000         | 0xc867                  | N      | N       | ~0       | 0        | 0x4c06                  |
+| CRC16_ARINC            | 0xa02b                  | N      | N       | 0        | 0        | 0xeba4                  |
 | CRC16_TELEDISK         | 0xa097                  | N      | N       | 0        | 0        | 0x0fb3                  |
 | CRC17_CAN_FD           | 0x1685b                 | N      | N       | 0        | 0        | 0x04f03                 |
 | CRC21_CAN_FD           | 0x102899                | N      | N       | 0        | 0        | 0x0ed841                |
@@ -248,6 +252,7 @@ The library provides the following set of predefined CRCs:
 | CRC32_MPEG2            | 0x04c11db7              | N      | N       | ~0       | 0        | 0x0376e6e7              |
 | CRC32_POSIX            | 0x04c11db7              | N      | N       | 0        | ~0       | 0x765e7680              |
 | CRC32_C                | 0x1edc6f41              | Y      | Y       | ~0       | ~0       | 0xe3069283              |
+| CRC32_K2               | 0x32583499              | Y      | Y       | ~0       | 0        | 0x1148ab33              |
 | CRC32_MEF              | 0x741b8cd7              | Y      | Y       | ~0       | 0        | 0xd2c22f51              |
 | CRC32_CDROM_EDC        | 0x8001801b              | Y      | Y       | 0        | 0        | 0x6ec2edc4              |
 | CRC32_Q                | 0x814141ab              | N      | N       | 0        | 0        | 0x3010bf7f              |

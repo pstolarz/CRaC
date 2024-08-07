@@ -68,7 +68,7 @@ static_assert(CRC6_GSM::poly_rev == 0x3d);
 static_assert(CRC7::poly_rev == 0x48);
 static_assert(CRC7_UMTS::poly_rev == 0x51);
 static_assert(CRC7_ROHC::poly_rev == 0x79);
-// static_assert(CRC7_MVB::poly_rev == 0x53);
+static_assert(CRC7_MVB::poly_rev == 0x53);
 static_assert(CRC8::poly_rev == 0xe0);
 static_assert(CRC8_EBU::poly_rev == 0xb8);
 static_assert(CRC8_AUTOSAR::poly_rev == 0xf4);
@@ -96,7 +96,7 @@ static_assert(CRC16_DECT_R::poly_rev == 0x91a0);
 static_assert(CRC16_NRSC5::poly_rev == 0xd010);
 static_assert(CRC16_AUG_CCITT::poly_rev == 0x8408);
 static_assert(CRC16_PROFIBUS::poly_rev == 0xf3b8);
-// static_assert(CRC16_CHAKRAVARTY::poly_rev == 0xa8f4);
+static_assert(CRC16_CHAKRAVARTY::poly_rev == 0xa8f4);
 static_assert(CRC16_DNP::poly_rev == 0xa6bc);
 static_assert(CRC16_M17::poly_rev == 0xac9a);
 static_assert(CRC16_LJ1200::poly_rev == 0xc6f6);
@@ -104,7 +104,7 @@ static_assert(CRC16_OPENSAFETY_B::poly_rev == 0xdaae);
 static_assert(CRC16_ARC::poly_rev == 0xa001);
 static_assert(CRC16_T10_DIF::poly_rev == 0xedd1);
 static_assert(CRC16_CDMA2000::poly_rev == 0xe613);
-// static_assert(CRC16_ARINC::poly_rev == 0xd405);
+static_assert(CRC16_ARINC::poly_rev == 0xd405);
 static_assert(CRC16_TELEDISK::poly_rev == 0xe905);
 static_assert(CRC17_CAN_FD::poly_rev == 0x1b42d);
 static_assert(CRC21_CAN_FD::poly_rev == 0x132281);
@@ -120,7 +120,7 @@ static_assert(CRC32_XFER::poly_rev == 0xf5000000);
 static_assert(CRC32::poly_rev == 0xedb88320);
 static_assert(CRC32_C::poly_rev == 0x82f63b78);
 static_assert(CRC32_MEF::poly_rev == 0xeb31d82e);
-// static_assert(CRC32_K2::poly_rev == 0x992c1a4c);
+static_assert(CRC32_K2::poly_rev == 0x992c1a4c);
 static_assert(CRC32_CDROM_EDC::poly_rev == 0xd8018001);
 static_assert(CRC32_Q::poly_rev == 0xd5828281);
 static_assert(CRC32_D::poly_rev == 0xd419cc15);
@@ -143,12 +143,12 @@ struct test_rt_sizes: Crc
         if (sizeof(typename Crc::block_eng) != sizeof(typename Crc::type))
             return false;
 
-        if constexpr (Crc::tab_type == crc_tab_e::TAB256) {
-            return (sizeof(Crc::lookup) == 256 * sizeof(typename Crc::type));
-        } else if constexpr (Crc::tab_type == crc_tab_e::TAB16) {
-            return (sizeof(Crc::lookup) == 16 * sizeof(typename Crc::type));
+        if constexpr (Crc::lut_type == crc_lut_e::LUT256) {
+            return (sizeof(Crc::lut) == 256 * sizeof(typename Crc::type));
+        } else if constexpr (Crc::lut_type == crc_lut_e::LUT16) {
+            return (sizeof(Crc::lut) == 16 * sizeof(typename Crc::type));
         } else {
-            return (sizeof(Crc::lookup) == 32 * sizeof(typename Crc::type));
+            return (sizeof(Crc::lut) == 32 * sizeof(typename Crc::type));
         }
     }
 
@@ -222,7 +222,7 @@ static_assert(test_crc_v<CRC6_GSM>);
 static_assert(test_crc_v<CRC7>);
 static_assert(test_crc_v<CRC7_UMTS>);
 static_assert(test_crc_v<CRC7_ROHC>);
-// static_assert(test_crc_v<CRC7_MVB>);
+static_assert(test_crc_v<CRC7_MVB>);
 static_assert(test_crc_v<CRC8>);
 static_assert(test_crc_v<CRC8_HDLC>);
 static_assert(test_crc_v<CRC8_ITU>);
@@ -274,7 +274,7 @@ static_assert(test_crc_v<CRC16_TMS37157>);
 static_assert(test_crc_v<CRC16_X25>);
 static_assert(test_crc_v<CRC16_XMODEM>);
 static_assert(test_crc_v<CRC16_PROFIBUS>);
-// static_assert(test_crc_v<CRC16_CHAKRAVARTY>);
+static_assert(test_crc_v<CRC16_CHAKRAVARTY>);
 static_assert(test_crc_v<CRC16_DNP>);
 static_assert(test_crc_v<CRC16_EN13757>);
 static_assert(test_crc_v<CRC16_M17>);
@@ -290,7 +290,7 @@ static_assert(test_crc_v<CRC16_MODBUS>);
 static_assert(test_crc_v<CRC16_USB>);
 static_assert(test_crc_v<CRC16_T10_DIF>);
 static_assert(test_crc_v<CRC16_CDMA2000>);
-// static_assert(test_crc_v<CRC16_ARINC>);
+static_assert(test_crc_v<CRC16_ARINC>);
 static_assert(test_crc_v<CRC16_TELEDISK>);
 static_assert(test_crc_v<CRC17_CAN_FD>);
 static_assert(test_crc_v<CRC21_CAN_FD>);
@@ -313,7 +313,7 @@ static_assert(test_crc_v<CRC32_JAMCRC>);
 static_assert(test_crc_v<CRC32_MPEG2>);
 static_assert(test_crc_v<CRC32_POSIX>);
 static_assert(test_crc_v<CRC32_C>);
-// static_assert(test_crc_v<CRC32_K2>);
+static_assert(test_crc_v<CRC32_K2>);
 static_assert(test_crc_v<CRC32_MEF>);
 static_assert(test_crc_v<CRC32_CDROM_EDC>);
 static_assert(test_crc_v<CRC32_Q>);
@@ -340,7 +340,7 @@ struct test_crc_bits: Crc
     constexpr static bool do_test()
     {
         using CRC =
-            crc_algo_poly<Crc::bits, Crc::poly, Crc::refl_in, Crc::tab_type>;
+            crc_algo_poly<Crc::bits, Crc::poly, Crc::refl_in, Crc::lut_type>;
 
         constexpr uint32_t in = 0b11011101111011111011111101111111;
         constexpr uint8_t in_le[] = {0b01111111, 0b10111111, 0b11101111, 0b11011101};
@@ -394,7 +394,7 @@ static_assert(test_crc_bits_v<CRC6_GSM>);
 static_assert(test_crc_bits_v<CRC7>);
 static_assert(test_crc_bits_v<CRC7_UMTS>);
 static_assert(test_crc_bits_v<CRC7_ROHC>);
-//static_assert(test_crc_bits_v<CRC7_MVB>);
+static_assert(test_crc_bits_v<CRC7_MVB>);
 static_assert(test_crc_bits_v<CRC8>);
 static_assert(test_crc_bits_v<CRC8_HDLC>);
 static_assert(test_crc_bits_v<CRC8_ITU>);
@@ -446,7 +446,7 @@ static_assert(test_crc_bits_v<CRC16_TMS37157>);
 static_assert(test_crc_bits_v<CRC16_X25>);
 static_assert(test_crc_bits_v<CRC16_XMODEM>);
 static_assert(test_crc_bits_v<CRC16_PROFIBUS>);
-// static_assert(test_crc_bits_v<CRC16_CHAKRAVARTY>);
+static_assert(test_crc_bits_v<CRC16_CHAKRAVARTY>);
 static_assert(test_crc_bits_v<CRC16_DNP>);
 static_assert(test_crc_bits_v<CRC16_EN13757>);
 static_assert(test_crc_bits_v<CRC16_M17>);
@@ -462,7 +462,7 @@ static_assert(test_crc_bits_v<CRC16_MODBUS>);
 static_assert(test_crc_bits_v<CRC16_USB>);
 static_assert(test_crc_bits_v<CRC16_T10_DIF>);
 static_assert(test_crc_bits_v<CRC16_CDMA2000>);
-// static_assert(test_crc_bits_v<CRC16_ARINC>);
+static_assert(test_crc_bits_v<CRC16_ARINC>);
 static_assert(test_crc_bits_v<CRC16_TELEDISK>);
 static_assert(test_crc_bits_v<CRC17_CAN_FD>);
 static_assert(test_crc_bits_v<CRC21_CAN_FD>);
@@ -485,7 +485,7 @@ static_assert(test_crc_bits_v<CRC32_JAMCRC>);
 static_assert(test_crc_bits_v<CRC32_MPEG2>);
 static_assert(test_crc_bits_v<CRC32_POSIX>);
 static_assert(test_crc_bits_v<CRC32_C>);
-// static_assert(test_crc_bits_v<CRC32_K2>);
+static_assert(test_crc_bits_v<CRC32_K2>);
 static_assert(test_crc_bits_v<CRC32_MEF>);
 static_assert(test_crc_bits_v<CRC32_CDROM_EDC>);
 static_assert(test_crc_bits_v<CRC32_Q>);

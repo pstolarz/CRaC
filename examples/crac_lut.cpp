@@ -22,13 +22,13 @@
 using CRC = crac::CRC32;
 
 //
-// Need to create CRC_tab class inheriting from CRC to get access to its
+// Need to create CRC_lut class inheriting from CRC to get access to its
 // lookup table, which is part of its protected, low level interface.
 //
-struct CRC_tab: CRC
+struct CRC_lut: CRC
 {
     constexpr static CRC::type get(uint8_t b) {
-        return CRC::lookup[b];
+        return CRC::lut[b];
     }
 };
 
@@ -68,13 +68,13 @@ int main(int argc, const char *argv[])
     // Get L/H tables.
     // NOTE: it's not important here what type of LUT is used internally.
     for (uint8_t i = 0; i < 16; i++) {
-        tab_l[i] = CRC_tab::get(i);
-        tab_h[i] = CRC_tab::get(i << 4);
+        tab_l[i] = CRC_lut::get(i);
+        tab_h[i] = CRC_lut::get(i << 4);
     }
 
     // check correctness of the above tables
     for (int i = 0; i < 256; i++) {
-        assert(CRC_tab::get(i) == (tab_l[i & 0xf] ^ tab_h[i >> 4]));
+        assert(CRC_lut::get(i) == (tab_l[i & 0xf] ^ tab_h[i >> 4]));
     }
 
     printf("tab_l\n"); print_tab(tab_l);
