@@ -49,8 +49,6 @@ constexpr inline crc_lut_e def_lut_type = crc_lut_e::LUT16;
 constexpr inline crc_lut_e def_lut_type = crc_lut_e::LUT32;
 #endif
 
-constexpr inline uint_max_t no_check_val = ~(uint_max_t)0;
-
 /**
  * CRC lookup table (LUT).
  *
@@ -247,6 +245,8 @@ template<> struct _make_unsigned<__uint128_t> { using type = __uint128_t; };
 template<typename T> using _make_unsigned_t = typename _make_unsigned<T>::type;
 
 } // unnamed namespace
+
+constexpr inline uint_max_t no_check_val = ~(uint_max_t)0;
 
 #ifdef __USE_EXTINT
 /// u128 literal operator
