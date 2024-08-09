@@ -66,7 +66,7 @@ tables. The same test conditions as previously (values in ms):
 
 |         | gcc -O   | gcc      |
 |---------|----------|----------|
-| LUT-256 | 0.524    | 1.350    |
+| LUT-256 | 0.440    | 1.350    |
 | LUT-32  | 0.680    | 1.608    |
 | LUT-16  | 0.922    | 2.592    |
 
