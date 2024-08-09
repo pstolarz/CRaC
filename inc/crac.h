@@ -258,7 +258,10 @@ constexpr __uint128_t operator""_u128(const char* x)
     if (x[0] == '0' && (x[1] == 'x' || x[1] == 'X')) {
         i = 2;
         base = 16;
-    } else if (x[0] == '0' ) {
+    } else if (x[0] == '0' && (x[1] == 'b' || x[1] == 'B')) {
+        i = 2;
+        base = 2;
+    } else if (x[0] == '0') {
         i = 1;
         base = 8;
     }
@@ -266,12 +269,14 @@ constexpr __uint128_t operator""_u128(const char* x)
     for (; x[i] != 0; i++)
     {
         y *= base;
-        if ('0' <= x[i] && x[i] <= '9') {
+        if ('0' <= x[i] && x[i] <= '9' && x[i] < '0' + (int)base) {
             y += x[i] - '0';
-        } else if (base == 16 && 'A' <= x[i] && x[i] <= 'F') {
-            y += x[i] - 'A' + 10;
-        } else if (base == 16 && 'a' <= x[i] && x[i] <= 'f') {
-            y += x[i] - 'a' + 10;
+        } else if (base == 16) {
+            if ('A' <= x[i] && x[i] <= 'F') {
+                y += x[i] - 'A' + 10;
+            } else if ('a' <= x[i] && x[i] <= 'f') {
+                y += x[i] - 'a' + 10;
+            }
         }
     }
     return y;
