@@ -61,7 +61,7 @@ Compiler version used for tests: `gcc (Debian 13.3.0-3) 13.3.0`.
 
 **Lookup table type vs performance**
 
-The following table presented CRC-32 compilation timings for different lookup
+The following table presents CRC-32 compilation timings for different lookup
 tables. The same test conditions as previously (values in ms):
 
 |         | gcc -O   | gcc      |
@@ -72,29 +72,6 @@ tables. The same test conditions as previously (values in ms):
 
 As a conclusion, unoptimized compilation introduces performance loss much more
 severely than lookup table size reduction.
-
-**Runtime footprint**
-
-CRaC is characterized by reduced runtime footprint size, which is especially
-important factor in the embedded systems area. The following table presents
-various CRC types usage, compiled for AVR 8-bit platform (gcc-avr toolchain)
-with size optimization turned on (`-Os`).
-
-|                  | FLASH [B]           | RAM [B]   |
-|------------------|---------------------|-----------|
-| CRC-8 (LUT-16)   |                     |           |
-| CRC-8 (LUT-32)   | 74(code)+32(LUT)    | 32(LUT)   |
-| CRC-8 (LUT-256)  | 50(code)+256(LUT)   | 256(LUT)  |
-| CRC-16 (LUT-16)  |                     |           |
-| CRC-16 (LUT-32)  | 86(code)+64(LUT)    | 64(LUT)   |
-| CRC-16 (LUT-256) | 60(code)+512(LUT)   | 512(LUT)  |
-| CRC-32 (LUT-16)  |                     |           |
-| CRC-32 (LUT-32)  | 144(code)+128(LUT)  | 128(LUT)  |
-| CRC-32 (LUT-256) | 92(code)+1024(LUT)  | 1024(LUT) |
-| CRC-64 (LUT-16)  |                     |           |
-| CRC-64 (LUT-32)  | 198(code)+256(LUT)  | 256(LUT)  |
-| CRC-64 (256-LUT) | 108(code)+2048(LUT) | 2048(LUT) |
-
 
 ## Usage
 
