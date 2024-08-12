@@ -507,7 +507,7 @@ public:
 
         if constexpr (bits < 8) {
             return crc >> (8 - bits);
-        } else if constexpr (bits == 8) {
+        } else if constexpr (bits == pwr2_ceil(bits)) {
             return crc;
         } else {
             return crc & mask;
@@ -534,7 +534,7 @@ public:
                 const unsigned n_diff = bits - r_bits;
                 const type l_crc = lut[(crc >> n_diff) ^ in_b];
 
-                if constexpr (bits <= 8) {
+                if constexpr (bits < 8) {
                     crc = l_crc ^ (crc << (8 - n_diff));
                 } else {
                     crc = l_crc ^ (crc << r_bits);
@@ -557,7 +557,7 @@ public:
 
         if constexpr (bits < 8) {
             return crc >> (8 - bits);
-        } else if constexpr (bits == 8) {
+        } else if constexpr (bits == pwr2_ceil(bits)) {
             return crc;
         } else {
             return crc & mask;
