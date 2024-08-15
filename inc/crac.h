@@ -358,7 +358,7 @@ template<unsigned Bits, uint_max_t Poly, crc_lut_e LutType>
 struct crc_algo_poly<Bits, Poly, true, LutType>:
     crc_algo_poly_traits<Bits, Poly, true, LutType>
 {
-private:
+protected:
     using base = crc_algo_poly_traits<Bits, Poly, true, LutType>;
 
 public:
@@ -451,7 +451,7 @@ template<unsigned Bits, uint_max_t Poly, crc_lut_e LutType>
 struct crc_algo_poly<Bits, Poly, false, LutType>:
     crc_algo_poly_traits<Bits, Poly, false, LutType>
 {
-private:
+protected:
     using base = crc_algo_poly_traits<Bits, Poly, false, LutType>;
 
 public:
@@ -594,7 +594,7 @@ template<
     crc_lut_e LutType = def_lut_type>
 struct crc_algo: protected crc_algo_poly<Bits, Poly, ReflIn, LutType>
 {
-private:
+protected:
     using base = crc_algo_poly<Bits, Poly, ReflIn, LutType>;
 
 public:
@@ -602,10 +602,11 @@ public:
 
 protected:
     /**
-     * Calculate final CRC value for a preliminary @c crc.
+     * Calculate final CRC value for a preliminary @c crc_in.
      */
-    constexpr inline static type final(type crc)
+    constexpr inline static type final(type crc_in)
     {
+        type crc = crc_in;
         if constexpr (refl_in != refl_out) {
             crc = bits_rev(crc, bits);
         }
