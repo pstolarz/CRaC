@@ -1,0 +1,45 @@
+/*
+ * CRaC: C++17 Cyclic Redundancy Check (CRC) template library.
+ *
+ * CRaC C-language binding interface: C-header interface.
+ * This file was auto-generated. Don't change it or the changes will be lost.
+ */
+
+#ifndef __CRAC_C_H__
+#define __CRAC_C_H__
+
+#include <stddef.h>
+#include <stdint.h>
+
+/* input type for crac_calc_bits_XXX() */
+typedef uint32_t crac_in_t;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+__SUBST_START__
+/** Calculate __CRC__ for table of bytes - single step mode. */
+__CRCTYPE__ crac_calc___CRC__(const uint8_t *in, size_t len);
+
+/** Calculate __CRC__ for @c n_bits bits (starting from LSB) - single step mode. */
+__CRCTYPE__ crac_calc_bits___CRC__(crac_in_t in, unsigned n_bits);
+
+/** Get __CRC__ initial value. */
+__CRCTYPE__ crac_init_val___CRC__(void);
+
+/** Update __CRC__ for table of bytes. */
+__CRCTYPE__ crac_update___CRC__(const uint8_t *in, size_t len, __CRCTYPE__ crc_in);
+
+/** Update __CRC__ for @c n_bits bits (starting from LSB). */
+__CRCTYPE__ crac_update_bits___CRC__(crac_in_t in, size_t n_bits, __CRCTYPE__ crc_in);
+
+/** Calculate final __CRC__ for a preliminary @c crc_in. */
+__CRCTYPE__ crac_final___CRC__(__CRCTYPE__ crc_in);
+
+__SUBST_END__
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif /* __CRAC_C_H__ */

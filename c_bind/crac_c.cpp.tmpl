@@ -1,0 +1,55 @@
+/*
+ * CRaC: C++17 Cyclic Redundancy Check (CRC) template library.
+ *
+ * CRaC C-language binding interface: C++ stub implementation.
+ * This file was auto-generated. Don't change it or the changes will be lost.
+ */
+
+#include "crac.h"
+#include "crac_c.h"
+
+using namespace crac;
+
+// custom CRCs may be defined here
+//using CRC5_CUSTOM = crc_algo<5, 0x15, false, false, 0, 0>;
+
+__SUBST_START__
+struct ___CRC__: __CRC__
+{
+    using __CRC__::base;
+    using __CRC__::final;
+};
+
+__SUBST_END__
+extern "C" {
+
+__SUBST_START__
+__CRC__::type crac_calc___CRC__(const uint8_t *in, size_t len) {
+    return __CRC__::calc(in, len);
+}
+
+__CRC__::type crac_calc_bits___CRC__(crac_in_t in, unsigned n_bits) {
+    return __CRC__::calc_bits(in, n_bits);
+}
+
+__CRC__::type crac_init_val___CRC__(void) {
+    return __CRC__::init_val;
+}
+
+__CRC__::type crac_update___CRC__(const uint8_t *in, size_t len, __CRC__::type crc_in)
+{
+    return ___CRC__::base::calc(in, len, crc_in);
+}
+
+__CRC__::type crac_update_bits___CRC__(crac_in_t in, size_t n_bits, __CRC__::type crc_in)
+{
+    return ___CRC__::base::calc_bits(in, n_bits, crc_in);
+}
+
+__CRC__::type crac_final___CRC__(__CRC__::type crc_in)
+{
+    return ___CRC__::final(crc_in);
+}
+
+__SUBST_END__
+} // extern "C"

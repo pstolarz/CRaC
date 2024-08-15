@@ -5,6 +5,8 @@ limited runtime footprint size (especially embedded systems case). The library
 extensively exploits compile-time oriented features of the C++ language
 requiring at least C++17 compliant compiler.
 
+For C-language binding see the [`c_bind`](c_bind) directory content.
+
 ## Features
 
 The following features distinguish the library among dozens of other CRC libraries.

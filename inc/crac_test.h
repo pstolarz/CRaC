@@ -9,7 +9,6 @@
  * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the License for more information.
  */
-
 /*
  * Compile-time tester. To be included from the library header only.
  */
