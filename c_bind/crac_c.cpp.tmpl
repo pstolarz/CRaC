@@ -24,15 +24,18 @@ __SUBST_END__
 extern "C" {
 
 __SUBST_START__
-__CRC__::type crac_calc___CRC__(const uint8_t *in, size_t len) {
+__CRC__::type crac_calc___CRC__(const uint8_t *in, size_t len)
+{
     return __CRC__::calc(in, len);
 }
 
-__CRC__::type crac_calc_bits___CRC__(crac_in_t in, unsigned n_bits) {
+__CRC__::type crac_calc_bits___CRC__(crac_in_t in, unsigned n_bits)
+{
     return __CRC__::calc_bits(in, n_bits);
 }
 
-__CRC__::type crac_init_val___CRC__(void) {
+__CRC__::type crac_init_val___CRC__(void)
+{
     return __CRC__::init_val;
 }
 

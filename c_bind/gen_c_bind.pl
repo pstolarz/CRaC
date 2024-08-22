@@ -64,7 +64,6 @@ sub subst_tmpl
             }
         }
     }
-
 }
 
 open(my $fht, "<", "crac_c.h.tmpl") or die "Can't open crac_c.h.tmpl: " . $!;
