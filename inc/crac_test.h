@@ -199,13 +199,24 @@ struct test_crc_bits: Crc
         using CRC =
             crc_algo_poly<Crc::bits, Crc::poly, Crc::refl_in, Crc::lut_type>;
 
-        constexpr uint32_t in = 0b11011101111011111011111101111111;
-        constexpr uint8_t in_le[] = {0b01111111, 0b10111111, 0b11101111, 0b11011101};
-        constexpr uint8_t in_be[] = {0b11011101, 0b11101111, 0b10111111, 0b01111111};
+        constexpr uint64_t in =
+            0b11011101'11101111'10111111'01111111'01111111'10111111'11110111'11111111;
+
+        constexpr uint8_t in_le[] = {
+            0b11111111, 0b11110111, 0b10111111, 0b01111111,
+            0b01111111, 0b10111111, 0b11101111, 0b11011101
+        };
+        constexpr uint8_t in_be[] = {
+            0b11011101, 0b11101111, 0b10111111, 0b01111111,
+            0b01111111, 0b10111111, 0b11110111, 0b11111111
+        };
 
         if constexpr (CRC::refl_in)
         {
-            auto crc = CRC::calc_bits(0b01111111, 8, 0);
+            auto crc = CRC::calc_bits(0b011111111111, 12, 0);
+            crc = CRC::calc_bits(0b01111111111, 11, crc);
+            crc = CRC::calc_bits(0b011111111, 9, crc);
+            crc = CRC::calc_bits(0b01111111, 8, crc);
             crc = CRC::calc_bits(0b0111111, 7, crc);
             crc = CRC::calc_bits(0b011111, 6, crc);
             crc = CRC::calc_bits(0b01111, 5, crc);
@@ -213,7 +224,7 @@ struct test_crc_bits: Crc
             crc = CRC::calc_bits(0b111, 2, crc);    // MSB ignored
 
             return (CRC::calc(in_le, sizeof(in_le), 0) == crc) &&
-                (CRC::calc_bits(in, 32, 0) == crc);
+                (CRC::calc_bits(in, 8 * sizeof(in), 0) == crc);
         } else
         {
             auto crc = CRC::calc_bits(0b111, 2, 0); // MSB ignored
@@ -222,9 +233,12 @@ struct test_crc_bits: Crc
             crc = CRC::calc_bits(0b011111, 6, crc);
             crc = CRC::calc_bits(0b0111111, 7, crc);
             crc = CRC::calc_bits(0b01111111, 8, crc);
+            crc = CRC::calc_bits(0b011111111, 9, crc);
+            crc = CRC::calc_bits(0b01111111111, 11, crc);
+            crc = CRC::calc_bits(0b011111111111, 12, crc);
 
             return (CRC::calc(in_be, sizeof(in_be), 0) == crc) &&
-                (CRC::calc_bits(in, 32, 0) == crc);
+                (CRC::calc_bits(in, 8 * sizeof(in), 0) == crc);
         }
     }
 
