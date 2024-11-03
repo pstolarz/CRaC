@@ -3,21 +3,22 @@
 CRaC C++ template library may be bound into C-language code via C compliant
 interface.
 
-In the [`crac_c_example.c`](crac_c_example.c) three CRCs (CRC-8, CRC-16, CRC-32)
-are imported and used in three different calculation modes.
+In the [`crac_c_example.c`](crac_c_example.c) three CRCs (`CRC8`, `CRC16`, `CRC32`)
+are imported and used in three different calculation modes. Run `make` to build
+the example.
 
-The CRC space-separated list may be changed by defining `CRC_LIST` while
-launching `make` build:
+The space-separated CRCs list which are going to be C-bound is defined by `CRC_LIST`
+while running `make c_bind`. For example to bind `CRC5_ITU` and `CRC16_DARC` run
+the following:
 
 ```
-CRC_LIST=... make crac_c.o
+CRC_LIST="CRC5_ITU CRC16_DARC" make c_bind
 ```
 
-Then include  the `crac_c.o` object file into a project. `crac_c.h` shall be
-used as C header in the project's sources.
+Then include the `crac_c.o` object file into a project. `crac_c.h` shall be
+used as C-header for the project's sources.
 
 NOTES
-* Default value for `CRC_LIST` is `CRC8 CRC16 CRC32`.
 * Each imported CRC is associated with set of C functions as exposed by `crac_c.h`
   auto-generated header.
 * The `crac_c.cpp` is auto-generated C++ implementation file stubbing its calls
