@@ -19,7 +19,7 @@ reduced form, optimized for a particular CRC algorithm. Moreover, if an input
 for a calculated CRC checksum is known at the compile time, the library may
 calculate it purely at the compilation stage with no code emitted to the runtime.
 As an example - the library unit tests are performed entirely at the compile-time
-level by [`crac_test.h`](inc/crac_test.h) header, and may be activated by
+level by [`crac_test.h`](include/crac_test.h) header, and may be activated by
 defining `CRAC_TEST`.
 
 **Limited runtime footprint**
@@ -248,7 +248,7 @@ The library provides the following set of predefined CRCs:
 
 Some of the above algorithms have one or more aliases (e.g. `CRC16_KERMIT`,
 `CRC16_BLUETOOTH`, `CRC16_CCITT`, `CRC16_CCITT_TRUE`, `CRC16_V41_LSB` refer
-to the same CRC). See [`crac.h`](inc/crac.h) for more details.
+to the same CRC). See [`crac.h`](include/crac.h) for more details.
 
 (*) Only for `gcc`/`clang` compilers. Enabled by defining `CRAC_EXTINT`.
 

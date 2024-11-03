@@ -1,4 +1,4 @@
 def Settings( **kwargs ):
   return {
-    "flags": ["-xc++", "--std=c++17", "-Wall", "-Iinc"]
+    "flags": ["-xc++", "--std=c++17", "-Wall", "-Iinclude"]
   }

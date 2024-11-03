@@ -1,6 +1,6 @@
 .PHONY: all c_bind clean
 
-CXXFLAGS+=--std=c++17 -Wall -I../inc -O
+CXXFLAGS+=--std=c++17 -Wall -I../include -O
 
 all: crac_c_example
 c_bind: crac_c.o
