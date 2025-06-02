@@ -21,12 +21,32 @@ used as C-header for the project's sources.
 NOTES
 * Each imported CRC is associated with set of C functions as exposed by `crac_c.h`
   auto-generated header.
+
 * The `crac_c.cpp` is auto-generated C++ implementation file stubbing its calls
   into the CRaC library. It's compiled into `crac_c.o` object file.
+
 * The `crac_c.h` and `crac_c.cpp` files are generated basing on `crac_c.h.tmpl`
   and `crac_c.cpp.tmpl` template files by `gen_c_bind.pl` Perl script.
-* It is possible to import a custom CRC algorithm by adding its definition into
-  the [`crac_c.cpp.tmpl`](crac_c.cpp.tmpl) template file.
+
 * `crac_calc_bits_XXX()` family of functions uses `crac_in_t` (`uint32_t` by
   default) as input argument type. The type may be changed by updating
-  [`crac_c.h.tmpl`](crac_c.h.tmpl) template file.
+  [`crac_c.h.tmpl`](crac_c.h.tmpl) template file or defining `CRAC_IN_T`
+  to desired type while running `make c_bind`:
+
+  ```
+  CRC_LIST=... CRAC_IN_T=uint64_t make c_bind
+  ```
+
+* It is possible to import custom CRC algorithms by adding their definitions
+  into the [`crac_c.cpp.tmpl`](crac_c.cpp.tmpl) template file or creating a file
+  with desired CRCs definition and pass its location by `CUSTOM_CRCS` while
+  running `make c_bind`:
+
+  ```
+  CRC_LIST=... CUSTOM_CRCS=custom_crcs.h make c_bind
+  ```
+
+  `custom_crcs.h` content:
+  ```
+  using CRC5_CUSTOM = crc_algo<5, 0x15, false, false, 0, 0>;
+  ```

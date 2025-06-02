@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (c) 2024 Piotr Stolarz
+# Copyright (c) 2024-2025 Piotr Stolarz
 # CRaC: C++17 Cyclic Redundancy Check (CRC) template library.
 #
 # Distributed under the 2-clause BSD License (the License)
@@ -43,9 +43,24 @@ sub subst_tmpl
         if ($api_off == 0) {
             if ($l =~ m/^[ \t]*__SUBST_START__[ \t]*$/) {
                 $api_off = tell($in);
-            } else {
-                print($out $l);
+                next;
+            } elsif ($l =~ m/^[ \t]*__CUSTOM_CRCS___[ \t]*$/) {
+                if (defined($ENV{CUSTOM_CRCS})) {
+                    open(my $fcrcs, "<", "$ENV{CUSTOM_CRCS}")
+                        or die "Can't open $ENV{CUSTOM_CRCS}: " . $!;
+
+                    while (my $lc = <$fcrcs>) {
+                        print($out $lc);
+                    }
+                    close($fcrcs);
+                    print($out "\n");
+                }
+                next;
+            } elsif (defined($ENV{CRAC_IN_T}) &&
+                $l =~ m/^[ \t]*typedef[ \t]+uint32_t[ \t]+crac_in_t[ \t]*;$/) {
+                $l =~ s/uint32_t/$ENV{CRAC_IN_T}/;
             }
+            print($out $l);
         } else {
             if ($l =~ m/^[ \t]*__SUBST_END__[ \t]*$/) {
                 $crc_i++;
