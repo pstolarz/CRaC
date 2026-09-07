@@ -438,7 +438,7 @@ public:
         while (n_bytes--) {
             crc ^= (uint8_t)in;
             crc = lut[crc] ^ (crc >> 8);
-            in >>= 8;
+            in = (_make_unsigned_t<T>)in >> 8;
         }
 
         if (r_bits) {
@@ -530,7 +530,8 @@ public:
 
         if (r_bits) {
             n_bits -= r_bits;
-            const uint8_t in_b = (in >> n_bits) & (((uint8_t)1 << r_bits) - 1);
+            const uint8_t in_b =
+                ((_make_unsigned_t<T>)in >> n_bits) & (((uint8_t)1 << r_bits) - 1);
 
             if (bits <= r_bits) {
                 const unsigned n_diff = r_bits - bits;
@@ -552,7 +553,7 @@ public:
 
         while (n_bytes--) {
             n_bits -= 8;
-            const uint8_t in_b = in >> n_bits;
+            const uint8_t in_b = (_make_unsigned_t<T>)in >> n_bits;
 
             if constexpr (bits <= 8) {
                 crc = lut[crc ^ in_b];
