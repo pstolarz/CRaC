@@ -29,7 +29,7 @@ enum class crc_lut_e {
     LUT256
 };
 
-namespace {
+namespace detail {
 
 #if defined(__GNUC__) && defined(CRAC_EXTINT)
 # define __USE_EXTINT
@@ -252,7 +252,9 @@ template<> struct _make_unsigned<__uint128_t> { using type = __uint128_t; };
 #endif
 template<typename T> using _make_unsigned_t = typename _make_unsigned<T>::type;
 
-} // unnamed namespace
+} // detail namespace
+
+using namespace detail;
 
 #ifdef __USE_EXTINT
 /// u128 literal operator
