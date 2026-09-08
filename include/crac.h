@@ -325,12 +325,14 @@ constexpr T bits_rev(T in, unsigned n_bits = 8 * sizeof(T))
     };
 
     _make_unsigned_t<T> out = 0;
+    _make_unsigned_t<T> _in = static_cast<_make_unsigned_t<T>>(in);
 
     for (; n_bits > 4; n_bits -= 4) {
-        out |= rev16_tab[in & 0xf];
-        in >>= 4; out <<= 4;
+        out |= rev16_tab[_in & 0xf];
+        _in >>= 4;
+        out <<= 4;
     }
-    return (out | rev16_tab[in & 0xf]) >> (4 - n_bits);
+    return (out | rev16_tab[_in & 0xf]) >> (4 - n_bits);
 }
 
 /**
@@ -448,7 +450,7 @@ public:
     }
 
     /**
-     * Calculate bitwise CRC for arbitrary integer value.
+     * Calculate bitwise CRC for a non-boolean integer value.
      * This is fast mode routine basing on the CRC lookup tables.
      */
     template<typename T>
@@ -620,7 +622,7 @@ using no_check_val = check_val_t<0, false>;
  *     - @c check_val<value> to verify @c value against calculated check-value.
  *       In case of discrepancy compilation error is raised.
  *     - @c no_check_val (default if not provided) to calculate the CRC
- *       check-value at complication time but not verify it.
+ *       check-value at compilation time but not verify it.
  *     In both cases @c crc_algo::check_val is set.
  * @param LutType Type of CRC lookup table.
  */
@@ -675,7 +677,7 @@ public:
      * Calculate CRC for @c n_bits bits (starting from LSB) - single step mode.
      *
      * Notes:
-     * - @c in may be a value of an arbitrary integer type. If the value is
+     * - @c in may be a value of a non-boolean integer type. If the value is
      *   signed it's converted into the corresponding unsigned counterpart.
      * - In case @c n_bits is larger than number of bits which may encode
      *   value of type @c T, then @c in value is treated as @c n_bits
@@ -718,7 +720,7 @@ public:
         /**
          * Update CRC for @c n_bits bits (starting from LSB).
          *
-         * @note @c in may be a value of an arbitrary integer type.
+         * @note @c in may be a value of a non-boolean integer type.
          * @note In case @c n_bits is larger than number of bits which may encode
          *     value of type @c T, then @c in value is treated as @c n_bits
          *     integer with its most significant bits zeroed over number of bits
