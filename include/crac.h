@@ -252,6 +252,27 @@ template<> struct _make_unsigned<__uint128_t> { using type = __uint128_t; };
 #endif
 template<typename T> using _make_unsigned_t = typename _make_unsigned<T>::type;
 
+
+/// Safe unsigned shift-right operation (number of bits known at compile time)
+template<unsigned Bits, typename T>
+constexpr inline _make_unsigned_t<T> shr(T in)
+{
+    if constexpr (8 * sizeof(T) <= Bits)
+        return 0;
+    else
+        return static_cast<_make_unsigned_t<T>>(in) >> Bits;
+}
+
+/// Safe unsigned shift-right operation (number of bits known at runtime)
+template<typename T>
+constexpr inline _make_unsigned_t<T> shr(T in, unsigned n_bits)
+{
+    if (8 * sizeof(T) <= n_bits)
+        return 0;
+    else
+        return static_cast<_make_unsigned_t<T>>(in) >> n_bits;
+}
+
 } // detail namespace
 
 using namespace detail;
@@ -373,7 +394,7 @@ public:
     __USING_ALGO_POLY_TRAITS(base);
 
     /**
-     * Calculate CRC for a byte (or its part).
+     * Calculate CRC for a byte or its part - @c n_bits must be 1..8.
      * This is slow mode routine basing on direct calculation derived from CRC
      * mathematical definition.
      *
@@ -384,7 +405,7 @@ public:
     {
         type crc = crc_in;
 
-        crc ^= in & (((uint8_t)1 << n_bits) - 1);
+        crc ^= in & ((1u << n_bits) - 1);
         while (n_bits--) {
             crc = (crc & 1 ? poly_rev : 0) ^ (crc >> 1);
         }
@@ -439,12 +460,12 @@ public:
 
         while (n_bytes--) {
             crc ^= (uint8_t)in;
-            crc = lut[crc] ^ (crc >> 8);
-            in = (_make_unsigned_t<T>)in >> 8;
+            crc = lut[crc] ^ shr<8>(crc);
+            in = shr<8>(in);
         }
 
         if (r_bits) {
-            crc ^= in & (((uint8_t)1 << r_bits) - 1);
+            crc ^= in & ((1u << r_bits) - 1);
             crc = lut[crc << (8 - r_bits)] ^ (crc >> r_bits);
         }
 
@@ -532,8 +553,7 @@ public:
 
         if (r_bits) {
             n_bits -= r_bits;
-            const uint8_t in_b =
-                ((_make_unsigned_t<T>)in >> n_bits) & (((uint8_t)1 << r_bits) - 1);
+            const uint8_t in_b = shr(in, n_bits) & (((uint8_t)1 << r_bits) - 1);
 
             if (bits <= r_bits) {
                 const unsigned n_diff = r_bits - bits;
@@ -555,7 +575,7 @@ public:
 
         while (n_bytes--) {
             n_bits -= 8;
-            const uint8_t in_b = (_make_unsigned_t<T>)in >> n_bits;
+            const uint8_t in_b = shr(in, n_bits);
 
             if constexpr (bits <= 8) {
                 crc = lut[crc ^ in_b];
@@ -654,11 +674,13 @@ public:
     /**
      * Calculate CRC for @c n_bits bits (starting from LSB) - single step mode.
      *
-     * @note @c in may be a value of an arbitrary integer type.
-     * @note In case @c n_bits is larger than number of bits which may encode
-     *     value of type @c T, then @c in value is treated as @c n_bits
-     *     integer with its most significant bits zeroed over number of bits
-     *     which may encode value of type @c T
+     * Notes:
+     * - @c in may be a value of an arbitrary integer type. If the value is
+     *   signed it's converted into the corresponding unsigned counterpart.
+     * - In case @c n_bits is larger than number of bits which may encode
+     *   value of type @c T, then @c in value is treated as @c n_bits
+     *   integer with its most significant bits zeroed over number of bits
+     *   which may encode value of type @c T
      */
     template<typename T>
     constexpr inline static type calc_bits(T in, unsigned n_bits)
