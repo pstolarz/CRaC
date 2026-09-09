@@ -719,12 +719,7 @@ public:
 
         /**
          * Update CRC for @c n_bits bits (starting from LSB).
-         *
-         * @note @c in may be a value of a non-boolean integer type.
-         * @note In case @c n_bits is larger than number of bits which may encode
-         *     value of type @c T, then @c in value is treated as @c n_bits
-         *     integer with its most significant bits zeroed over number of bits
-         *     which may encode value of type @c T
+         * @see crc_algo::update_bits() for notes.
          *
          * Calculation engine collects passed input blocks for processing CRC
          * until @ref final() method call.
