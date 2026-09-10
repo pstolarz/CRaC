@@ -10,8 +10,8 @@
  * See the License for more information.
  */
 
-#ifndef __CRAC_H__
-#define __CRAC_H__
+#ifndef _CRAC_H_
+#define _CRAC_H_
 
 #if __cplusplus < 201703L
 # error "CRaC requires at least C++17 compliant compiler"
@@ -33,10 +33,10 @@ enum class crc_lut_e
 namespace detail {
 
 #if defined(__GNUC__) && defined(CRAC_EXTINT)
-# define __USE_EXTINT
+# define _CRAC_USE_EXTINT
 #endif
 
-#ifdef __USE_EXTINT
+#ifdef _CRAC_USE_EXTINT
 using uint_max_t = __uint128_t;
 #else
 using uint_max_t = uint64_t;
@@ -234,7 +234,7 @@ template<> struct pwr2<8> { using type = uint8_t; };
 template<> struct pwr2<16> { using type = uint16_t; };
 template<> struct pwr2<32> { using type = uint32_t; };
 template<> struct pwr2<64> { using type = uint64_t; };
-#ifdef __USE_EXTINT
+#ifdef _CRAC_USE_EXTINT
 template<> struct pwr2<128> { using type = __uint128_t; };
 #endif
 template<unsigned U> using pwr2_t = typename pwr2<U>::type;
@@ -251,7 +251,7 @@ template<> struct _make_unsigned<long> { using type = unsigned long; };
 template<> struct _make_unsigned<unsigned long> { using type = unsigned long; };
 template<> struct _make_unsigned<long long> { using type = unsigned long long; };
 template<> struct _make_unsigned<unsigned long long> { using type = unsigned long long; };
-#ifdef __USE_EXTINT
+#ifdef _CRAC_USE_EXTINT
 template<> struct _make_unsigned<__int128_t> { using type = __uint128_t; };
 template<> struct _make_unsigned<__uint128_t> { using type = __uint128_t; };
 #endif
@@ -284,7 +284,7 @@ constexpr inline _make_unsigned_t<T> shr(T in, unsigned n_bits)
 
 using namespace detail;
 
-#ifdef __USE_EXTINT
+#ifdef _CRAC_USE_EXTINT
 /// u128 literal operator
 constexpr __uint128_t operator""_u128(const char* x)
 {
@@ -366,14 +366,14 @@ struct crc_algo_poly_traits
     constexpr static crc_lut_e lut_type = LutType;
 };
 
-#define __USING_ALGO_POLY_TRAITS(__base) \
-    using __base::bits; \
-    using __base::mask; \
-    using __base::poly; \
-    using __base::poly_rev; \
-    using __base::refl_in; \
-    using __base::lut_type; \
-    using typename __base::type
+#define _CRAC_USING_ALGO_POLY_TRAITS(_base) \
+    using _base::bits; \
+    using _base::mask; \
+    using _base::poly; \
+    using _base::poly_rev; \
+    using _base::refl_in; \
+    using _base::lut_type; \
+    using typename _base::type
 
 /**
  * CRC algorithm (polynomial context). See @ref crc_algo for details.
@@ -399,7 +399,7 @@ protected:
     using base = crc_algo_poly_traits<Bits, Poly, true, LutType>;
 
 public:
-    __USING_ALGO_POLY_TRAITS(base);
+    _CRAC_USING_ALGO_POLY_TRAITS(base);
 
     /**
      * Calculate CRC for a byte or its part - @c n_bits must be 1..8.
@@ -491,7 +491,7 @@ protected:
     using base = crc_algo_poly_traits<Bits, Poly, false, LutType>;
 
 public:
-    __USING_ALGO_POLY_TRAITS(base);
+    _CRAC_USING_ALGO_POLY_TRAITS(base);
 
     /// See @c calc_byte() for reflected-input mode specialization.
     constexpr static type calc_byte(uint8_t in, unsigned n_bits, type crc_in)
@@ -641,7 +641,7 @@ protected:
     using base = crc_algo_poly<Bits, Poly, ReflIn, LutType>;
 
 public:
-    __USING_ALGO_POLY_TRAITS(base);
+    _CRAC_USING_ALGO_POLY_TRAITS(base);
 
 protected:
     /**
@@ -761,7 +761,7 @@ public:
     }
 };
 
-#undef __USING_ALGO_POLY_TRAITS
+#undef _CRAC_USING_ALGO_POLY_TRAITS
 
 /*
  * Predefined CRC algorithms
@@ -951,7 +951,7 @@ using CRC64_WE = crc_algo<64, 0x42f0e1eba9ea3693, false, false, 0xffffffffffffff
 using CRC64_XZ = crc_algo<64, 0x42f0e1eba9ea3693, true, true, 0xffffffffffffffff, 0xffffffffffffffff, check_val<0x995dc9bbdf1939fa>>;
 using CRC64_GO_ECMA = CRC64_XZ;
 using CRC64_REDIS = crc_algo<64, 0xad93d23594c935a9, true, true, 0, 0, check_val<0xe9c6d914c4b8d9ca>>;
-#ifdef __USE_EXTINT
+#ifdef _CRAC_USE_EXTINT
 using CRC82_DARC = crc_algo<82, 0x0308c0111011401440411_u128, true, true, 0, 0, check_val<0x09ea83f625023801fd612_u128>>;
 #endif
 
@@ -959,7 +959,7 @@ using CRC82_DARC = crc_algo<82, 0x0308c0111011401440411_u128, true, true, 0, 0, 
 # include "crac_test.h"
 #endif
 
-#undef __USE_EXTINT
+#undef _CRAC_USE_EXTINT
 
 } // crac namespace
-#endif /* __CRAC_H__ */
+#endif /* _CRAC_H_ */
