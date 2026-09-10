@@ -23,10 +23,11 @@
 namespace crac {
 
 /// Types of CRC lookup tables
-enum class crc_lut_e {
-    LUT16 = 0,
-    LUT32,
-    LUT256
+enum class crc_lut_e
+{
+    LUT16  = 16,
+    LUT32  = 32,
+    LUT256 = 256
 };
 
 namespace detail {
@@ -71,7 +72,8 @@ struct crc_lut<Crc, true, crc_lut_e::LUT256>
         } while (++i);
     }
 
-    constexpr inline typename Crc::type operator[](uint8_t in) const {
+    constexpr inline typename Crc::type operator[](uint8_t in) const
+    {
         return tab[in];
     }
 
@@ -94,7 +96,8 @@ struct crc_lut<Crc, false, crc_lut_e::LUT256>
         } while (++i);
     }
 
-    constexpr inline typename Crc::type operator[](uint8_t in) const {
+    constexpr inline typename Crc::type operator[](uint8_t in) const
+    {
         return tab[in];
     }
 
@@ -114,7 +117,8 @@ struct crc_lut<Crc, true, crc_lut_e::LUT32>
         }
     }
 
-    constexpr inline typename Crc::type operator[](uint8_t in) const {
+    constexpr inline typename Crc::type operator[](uint8_t in) const
+    {
         return tab_l[in & 0xf] ^ tab_h[in >> 4];
     }
 
@@ -142,7 +146,8 @@ struct crc_lut<Crc, false, crc_lut_e::LUT32>
         }
     }
 
-    constexpr inline typename Crc::type operator[](uint8_t in) const {
+    constexpr inline typename Crc::type operator[](uint8_t in) const
+    {
         return tab_l[in & 0xf] ^ tab_h[in >> 4];
     }
 
@@ -257,20 +262,22 @@ template<typename T> using _make_unsigned_t = typename _make_unsigned<T>::type;
 template<unsigned Bits, typename T>
 constexpr inline _make_unsigned_t<T> shr(T in)
 {
-    if constexpr (8 * sizeof(T) <= Bits)
+    if constexpr (8 * sizeof(T) <= Bits) {
         return 0;
-    else
+    } else {
         return static_cast<_make_unsigned_t<T>>(in) >> Bits;
+    }
 }
 
 /// Safe unsigned shift-right operation (number of bits known at runtime)
 template<typename T>
 constexpr inline _make_unsigned_t<T> shr(T in, unsigned n_bits)
 {
-    if (8 * sizeof(T) <= n_bits)
+    if (8 * sizeof(T) <= n_bits) {
         return 0;
-    else
+    } else {
         return static_cast<_make_unsigned_t<T>>(in) >> n_bits;
+    }
 }
 
 } // detail namespace
@@ -295,8 +302,7 @@ constexpr __uint128_t operator""_u128(const char* x)
         base = 8;
     }
 
-    for (; x[i] != 0; i++)
-    {
+    for (; x[i] != 0; i++) {
         y *= base;
         if ('0' <= x[i] && x[i] <= '9' && x[i] < '0' + (int)base) {
             y += x[i] - '0';
@@ -470,7 +476,6 @@ public:
             crc ^= in & ((1u << r_bits) - 1);
             crc = lut[crc << (8 - r_bits)] ^ (crc >> r_bits);
         }
-
         return crc;
     }
 };
@@ -669,7 +674,8 @@ public:
     /**
      * Calculate CRC for table of bytes - single step mode.
      */
-    constexpr inline static type calc(const uint8_t *in, size_t len) {
+    constexpr inline static type calc(const uint8_t *in, size_t len)
+    {
         return final(base::calc(in, len, init_val));
     }
 
@@ -713,7 +719,8 @@ public:
          * Calculation engine collects passed input blocks for processing CRC
          * until @ref final() method call.
          */
-        inline void update(const uint8_t *in, size_t len) {
+        inline void update(const uint8_t *in, size_t len)
+        {
             crc = base::calc(in, len, crc);
         }
 
@@ -736,7 +743,8 @@ public:
          * Once the value is returned the method resets the calculation engine
          * for subsequent block calculations.
          */
-        inline type final() {
+        inline type final()
+        {
             type res = crc_algo::final(crc);
             crc = init_val;
             return res;
@@ -747,7 +755,8 @@ public:
     };
 
     /// Get CRC block-mode calculation engine
-    inline static block_eng get_block_eng() {
+    inline static block_eng get_block_eng()
+    {
         return block_eng{};
     }
 };
