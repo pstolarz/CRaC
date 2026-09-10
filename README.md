@@ -29,11 +29,18 @@ runtime footprint size. Most CRC libraries out there, which use lookup tables to
 increase CRC computation speed, base on a single 256-elements table to calculate
 single-byte CRC checksum. Such approach may by a blocker for tiny embedded
 platforms, where 1kB CRC-32 lookup table is too large. CRaC incorporates
-16- or 32-elements lookup tables, drastically reducing the footprint, without
+16- or 32-elements lookup tables drastically reducing the footprint without
 significant performance penalty (see below for details).
 
-NOTE: Default type of LUT is chosen by defining appropriates `CRAC_LUT`
-macro-define or passing appropriate argument to `crc_algo` template.
+NOTE: Default type of lookup table is chosen by defining appropriate macro-define:
+`CRAC_LUT16`, `CRAC_LUT32` or `CRAC_LUT256`. **If not set LUT-32 is used.**
+LUT type may also be passed as the last argument to `crc_algo` template shadowing
+the macro-define setting.
+
+**Byte and bitwise CRC calculation**
+
+The library allows CRC calculations for byte and bit input in single-shot
+or block mode.
 
 **100+ predefined CRCs**
 
@@ -78,9 +85,8 @@ severely than lookup table size reduction.
 ## Usage
 
 The library can calculate CRC checksum purely at the compile time (if an input
-data is known at the source code level, aka `constexpr`) or classically during
-the runtime phase. In the latter case the computation may be performed in two
-types of modes - single step mode and the block mode.
+data is known at the source code level, aka `constexpr`) or regularly during
+the runtime phase.
 
 ```c++
 #include "crac.h"
