@@ -1,7 +1,6 @@
 .PHONY: all test clean
 
 CXXFLAGS+=--std=c++17 -Wall -I../include -O
-crac_perf: CXXFLAGS+=-DCRAC_LUT256
 
 EXES:=\
 	crac_calcbits \

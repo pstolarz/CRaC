@@ -763,8 +763,11 @@ public:
 
 #undef _CRAC_USING_ALGO_POLY_TRAITS
 
-/*
+/**
  * Predefined CRC algorithms
+ *
+ * All the CRCs below use lookup table type as set by @c def_lut_type.
+ * This default may be changed by @ref change_lut().
  */
 using CRC1 = crc_algo<1, 0x1, true, true, 0, 0, check_val<0x1>>;
 using CRC3_GSM = crc_algo<3, 0x3, false, false, 0, 0x7, check_val<0x4>>;
@@ -954,6 +957,16 @@ using CRC64_REDIS = crc_algo<64, 0xad93d23594c935a9, true, true, 0, 0, check_val
 #ifdef _CRAC_USE_EXTINT
 using CRC82_DARC = crc_algo<82, 0x0308c0111011401440411_u128, true, true, 0, 0, check_val<0x09ea83f625023801fd612_u128>>;
 #endif
+
+/**
+ * Update CRC type by a new lookup table type.
+ *
+ * @param Crc CRC type to be updated.
+ * @param LutType New lookup table type to set.
+ */
+template<typename Crc, crc_lut_e LutType>
+using change_lut = crc_algo<Crc::bits, Crc::poly, Crc::refl_in, Crc::refl_out,
+    Crc::init_val, Crc::xor_out, check_val<Crc::check_val>, LutType>;
 
 #ifdef CRAC_TEST
 # include "crac_test.h"

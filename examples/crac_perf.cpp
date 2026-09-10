@@ -51,20 +51,9 @@ static void cal_perf(const uint8_t in[TAB_SIZE])
 
 int main(int argc, const char *argv[])
 {
-    using CRC_LUT256 = crc_algo<CRC::bits, CRC::poly,
-          CRC::refl_in, CRC::refl_out,
-          CRC::init_val, CRC::xor_out,
-          no_check_val, crc_lut_e::LUT256>;
-
-    using CRC_LUT32 = crc_algo<CRC::bits, CRC::poly,
-          CRC::refl_in, CRC::refl_out,
-          CRC::init_val, CRC::xor_out,
-          no_check_val, crc_lut_e::LUT32>;
-
-    using CRC_LUT16 = crc_algo<CRC::bits, CRC::poly,
-          CRC::refl_in, CRC::refl_out,
-          CRC::init_val, CRC::xor_out,
-          no_check_val, crc_lut_e::LUT16>;
+    using CRC_LUT256 = change_lut<CRC, crc_lut_e::LUT256>;
+    using CRC_LUT32 = change_lut<CRC, crc_lut_e::LUT32>;
+    using CRC_LUT16 = change_lut<CRC, crc_lut_e::LUT16>;
 
     // input table
     uint8_t in[TAB_SIZE];
