@@ -240,49 +240,47 @@ template<> struct pwr2<128> { using type = __uint128_t; };
 template<unsigned U> using pwr2_t = typename pwr2<U>::type;
 
 // std::make_unsigned counterpart
-template<typename T> struct _make_unsigned;
-template<> struct _make_unsigned<char> { using type = unsigned char; };
-template<> struct _make_unsigned<unsigned char> { using type = unsigned char; };
-template<> struct _make_unsigned<short int> { using type = unsigned short int; };
-template<> struct _make_unsigned<unsigned short int> { using type = unsigned short int; };
-template<> struct _make_unsigned<int> { using type = unsigned int; };
-template<> struct _make_unsigned<unsigned int> { using type = unsigned int; };
-template<> struct _make_unsigned<long> { using type = unsigned long; };
-template<> struct _make_unsigned<unsigned long> { using type = unsigned long; };
-template<> struct _make_unsigned<long long> { using type = unsigned long long; };
-template<> struct _make_unsigned<unsigned long long> { using type = unsigned long long; };
+template<typename T> struct make_unsigned;
+template<> struct make_unsigned<char> { using type = unsigned char; };
+template<> struct make_unsigned<unsigned char> { using type = unsigned char; };
+template<> struct make_unsigned<short int> { using type = unsigned short int; };
+template<> struct make_unsigned<unsigned short int> { using type = unsigned short int; };
+template<> struct make_unsigned<int> { using type = unsigned int; };
+template<> struct make_unsigned<unsigned int> { using type = unsigned int; };
+template<> struct make_unsigned<long> { using type = unsigned long; };
+template<> struct make_unsigned<unsigned long> { using type = unsigned long; };
+template<> struct make_unsigned<long long> { using type = unsigned long long; };
+template<> struct make_unsigned<unsigned long long> { using type = unsigned long long; };
 #ifdef _CRAC_USE_EXTINT
-template<> struct _make_unsigned<__int128_t> { using type = __uint128_t; };
-template<> struct _make_unsigned<__uint128_t> { using type = __uint128_t; };
+template<> struct make_unsigned<__int128_t> { using type = __uint128_t; };
+template<> struct make_unsigned<__uint128_t> { using type = __uint128_t; };
 #endif
-template<typename T> using _make_unsigned_t = typename _make_unsigned<T>::type;
+template<typename T> using make_unsigned_t = typename make_unsigned<T>::type;
 
 
 /// Safe unsigned shift-right operation (number of bits known at compile time)
 template<unsigned Bits, typename T>
-constexpr inline _make_unsigned_t<T> shr(T in)
+constexpr inline make_unsigned_t<T> shr(T in)
 {
     if constexpr (8 * sizeof(T) <= Bits) {
         return 0;
     } else {
-        return static_cast<_make_unsigned_t<T>>(in) >> Bits;
+        return static_cast<make_unsigned_t<T>>(in) >> Bits;
     }
 }
 
 /// Safe unsigned shift-right operation (number of bits known at runtime)
 template<typename T>
-constexpr inline _make_unsigned_t<T> shr(T in, unsigned n_bits)
+constexpr inline make_unsigned_t<T> shr(T in, unsigned n_bits)
 {
     if (8 * sizeof(T) <= n_bits) {
         return 0;
     } else {
-        return static_cast<_make_unsigned_t<T>>(in) >> n_bits;
+        return static_cast<make_unsigned_t<T>>(in) >> n_bits;
     }
 }
 
 } // detail namespace
-
-using namespace detail;
 
 #ifdef _CRAC_USE_EXTINT
 /// u128 literal operator
@@ -330,30 +328,31 @@ constexpr T bits_rev(T in, unsigned n_bits = 8 * sizeof(T))
         0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf
     };
 
-    _make_unsigned_t<T> out = 0;
-    _make_unsigned_t<T> _in = static_cast<_make_unsigned_t<T>>(in);
+    detail::make_unsigned_t<T> out = 0;
+    detail::make_unsigned_t<T> in_ = static_cast<detail::make_unsigned_t<T>>(in);
 
     for (; n_bits > 4; n_bits -= 4) {
-        out |= rev16_tab[_in & 0xf];
-        _in >>= 4;
+        out |= rev16_tab[in_ & 0xf];
+        in_ >>= 4;
         out <<= 4;
     }
-    return (out | rev16_tab[_in & 0xf]) >> (4 - n_bits);
+    return (out | rev16_tab[in_ & 0xf]) >> (4 - n_bits);
 }
 
 /**
  * Supplementary class acting as a traits definitions base class for
  * @c crc_algo_poly.
  */
-template<unsigned Bits, uint_max_t Poly, bool ReflIn, crc_lut_e LutType>
+template<unsigned Bits, detail::uint_max_t Poly, bool ReflIn, crc_lut_e LutType>
 struct crc_algo_poly_traits
 {
-    static_assert(Bits >= 1 && Bits <= 8 * sizeof(uint_max_t), "Invalid CRC size");
+    static_assert(Bits >= 1 && Bits <= 8 * sizeof(detail::uint_max_t),
+        "Invalid CRC size");
 
     /// CRC algorithm bits size specification
     constexpr static unsigned bits = Bits;
     /// CRC result type
-    using type = pwr2_t<pwr2_ceil(bits)>;
+    using type = detail::pwr2_t<detail::pwr2_ceil(bits)>;
     /// CRC value mask
     constexpr static type mask = ((((type)1 << (bits - 1)) - 1) << 1) | 1;
     /// Polynomial associated with the CRC algorithm
@@ -385,13 +384,13 @@ struct crc_algo_poly_traits
  *     table, calculated at the compile time and assigned to the algorithm
  *     on the class-level (static) context.
  */
-template<unsigned Bits, uint_max_t Poly, bool ReflIn, crc_lut_e LutType>
+template<unsigned Bits, detail::uint_max_t Poly, bool ReflIn, crc_lut_e LutType>
 struct crc_algo_poly;
 
 /**
  * @c crc_algo_poly template in reflected-input (LSB) mode specialization.
  */
-template<unsigned Bits, uint_max_t Poly, crc_lut_e LutType>
+template<unsigned Bits, detail::uint_max_t Poly, crc_lut_e LutType>
 struct crc_algo_poly<Bits, Poly, true, LutType>:
     crc_algo_poly_traits<Bits, Poly, true, LutType>
 {
@@ -434,7 +433,7 @@ public:
      * single-header include, the library has been designed for.
      */
     // generate lookup table at the compile time
-    constexpr static crc_lut<crc_algo_poly> lut{};
+    constexpr static detail::crc_lut<crc_algo_poly> lut{};
 
     /**
      * Calculate CRC for table of bytes.
@@ -468,8 +467,8 @@ public:
 
         while (n_bytes--) {
             crc ^= (uint8_t)in;
-            crc = lut[crc] ^ shr<8>(crc);
-            in = shr<8>(in);
+            crc = lut[crc] ^ detail::shr<8>(crc);
+            in = detail::shr<8>(in);
         }
 
         if (r_bits) {
@@ -483,7 +482,7 @@ public:
 /**
  * @c crc_algo_poly in direct-input (MSB) mode specialization.
  */
-template<unsigned Bits, uint_max_t Poly, crc_lut_e LutType>
+template<unsigned Bits, detail::uint_max_t Poly, crc_lut_e LutType>
 struct crc_algo_poly<Bits, Poly, false, LutType>:
     crc_algo_poly_traits<Bits, Poly, false, LutType>
 {
@@ -522,7 +521,7 @@ public:
     }
 
     // generate lookup table at the compile time
-    constexpr static crc_lut<crc_algo_poly> lut{};
+    constexpr static detail::crc_lut<crc_algo_poly> lut{};
 
     /// See @c calc() for reflected-input mode specialization.
     constexpr static type calc(const uint8_t *in, size_t len, type crc_in)
@@ -543,7 +542,7 @@ public:
 
         if constexpr (bits < 8) {
             return crc >> (8 - bits);
-        } else if constexpr (bits == pwr2_ceil(bits)) {
+        } else if constexpr (bits == detail::pwr2_ceil(bits)) {
             return crc;
         } else {
             return crc & mask;
@@ -560,7 +559,8 @@ public:
 
         if (r_bits) {
             n_bits -= r_bits;
-            const uint8_t in_b = shr(in, n_bits) & (((uint8_t)1 << r_bits) - 1);
+            const uint8_t in_b =
+                detail::shr(in, n_bits) & (((uint8_t)1 << r_bits) - 1);
 
             if (bits <= r_bits) {
                 const unsigned n_diff = r_bits - bits;
@@ -582,7 +582,7 @@ public:
 
         while (n_bytes--) {
             n_bits -= 8;
-            const uint8_t in_b = shr(in, n_bits);
+            const uint8_t in_b = detail::shr(in, n_bits);
 
             if constexpr (bits <= 8) {
                 crc = lut[crc ^ in_b];
@@ -593,7 +593,7 @@ public:
 
         if constexpr (bits < 8) {
             return crc >> (8 - bits);
-        } else if constexpr (bits == pwr2_ceil(bits)) {
+        } else if constexpr (bits == detail::pwr2_ceil(bits)) {
             return crc;
         } else {
             return crc & mask;
@@ -601,10 +601,10 @@ public:
     }
 };
 
-template<uint_max_t Value>
-using check_val = check_val_t<Value, true>;
+template<detail::uint_max_t Value>
+using check_val = detail::check_val_t<Value, true>;
 
-using no_check_val = check_val_t<0, false>;
+using no_check_val = detail::check_val_t<0, false>;
 
 /**
  * CRC algorithm.
@@ -632,9 +632,9 @@ using no_check_val = check_val_t<0, false>;
  * @param LutType Type of CRC lookup table.
  */
 template<
-    unsigned Bits, uint_max_t Poly, bool ReflIn, bool ReflOut,
-    uint_max_t InitVal, uint_max_t XorOut, typename CheckVal = no_check_val,
-    crc_lut_e LutType = def_lut_type>
+    unsigned Bits, detail::uint_max_t Poly, bool ReflIn, bool ReflOut,
+    detail::uint_max_t InitVal, detail::uint_max_t XorOut,
+    typename CheckVal = no_check_val, crc_lut_e LutType = detail::def_lut_type>
 struct crc_algo: protected crc_algo_poly<Bits, Poly, ReflIn, LutType>
 {
 protected:
@@ -766,8 +766,8 @@ public:
 /**
  * Predefined CRC algorithms
  *
- * All the CRCs below use lookup table type as set by @c def_lut_type.
- * This default may be changed by @ref change_lut().
+ * All the CRCs below use lookup table type as defined by @c CRAC_LUTxxx
+ * macro-define. This may be changed using @ref change_lut.
  */
 using CRC1 = crc_algo<1, 0x1, true, true, 0, 0, check_val<0x1>>;
 using CRC3_GSM = crc_algo<3, 0x3, false, false, 0, 0x7, check_val<0x4>>;
