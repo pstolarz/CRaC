@@ -9,10 +9,10 @@ crac_c_example: CRC_LIST=CRC8 CRC16 CRC32
 crac_c_example: crac_c.o
 
 ifdef CRAC_IN_T
-GEN_CONFIG+="CRAC_IN_T=$(CRAC_IN_T)"
+GEN_CONFIG+=CRAC_IN_T=$(CRAC_IN_T)
 endif
 ifdef CUSTOM_CRCS
-GEN_CONFIG+="CUSTOM_CRCS=$(CUSTOM_CRCS)"
+GEN_CONFIG+=CUSTOM_CRCS=$(CUSTOM_CRCS)
 endif
 
 crac_c.cpp:
